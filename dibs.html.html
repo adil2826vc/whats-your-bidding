@@ -1,0 +1,2157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>What's Your Bidding</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- Firebase -->
+<script type="module">
+  const firebaseConfig = {
+    apiKey: "AIzaSyAmPBZpDlTU5t3-65K2HCQtY7MvI2heQqk",
+    authDomain: "what-s-your-bidding.firebaseapp.com",
+    databaseURL: "https://what-s-your-bidding-default-rtdb.firebaseio.com",
+    projectId: "what-s-your-bidding",
+    storageBucket: "what-s-your-bidding.firebasestorage.app",
+    messagingSenderId: "524774020327",
+    appId: "1:524774020327:web:bda3bf800a63d3c9f43e42"
+  };
+
+  try {
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
+    const { getDatabase, ref, set, get, onValue, remove } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
+    const app = initializeApp(firebaseConfig);
+    const db  = getDatabase(app);
+    window._fb = { db, ref, set, get, onValue, remove };
+    window._fbReady = true;
+    console.log("✅ Firebase connected");
+  } catch(e) {
+    console.warn("Firebase init failed:", e.message);
+    window._fbReady = false;
+  }
+</script>
+
+<style>
+/* ═══════════════════════════════════════════
+   ROOT & RESET
+═══════════════════════════════════════════ */
+:root {
+  --bg:        #f0f4ff;
+  --bg2:       #e4eaf8;
+  --surface:   #ffffff;
+  --surface2:  #eef2fc;
+  --border:    #c8d4f0;
+  --blue:      #1a3fa8;
+  --blue2:     #2555d4;
+  --blue-lt:   #4a7ff7;
+  --blue-pale: #dce8ff;
+  --gold:      #f0b429;
+  --gold2:     #e09b10;
+  --text:      #0f1f52;
+  --muted:     #6b7ab5;
+  --correct:   #16a34a;
+  --wrong:     #dc2626;
+  --correct-bg:#dcfce7;
+  --wrong-bg:  #fee2e2;
+  --radius:    16px;
+  --shadow:    0 4px 24px rgba(26,63,168,0.10);
+  --shadow-lg: 0 12px 48px rgba(26,63,168,0.16);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Abstract background pattern */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(74,127,247,0.13) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 85% 80%, rgba(26,63,168,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 60% 30%, rgba(240,180,41,0.07) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Subtle grid lines */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(26,63,168,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26,63,168,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ═══════════════════════════════════════════
+   SCREENS
+═══════════════════════════════════════════ */
+.screen {
+  display: none;
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+.screen.active { display: flex; }
+
+/* ═══════════════════════════════════════════
+   SHARED COMPONENTS
+═══════════════════════════════════════════ */
+.logo-mark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-icon {
+  width: 44px; height: 44px;
+  background: var(--blue);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+  color: var(--gold);
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(26,63,168,0.3);
+  flex-shrink: 0;
+}
+.logo-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--blue);
+  line-height: 1.1;
+}
+.logo-text span {
+  display: block;
+  font-size: .75rem;
+  font-style: italic;
+  color: var(--muted);
+  font-weight: 600;
+  font-family: 'Outfit', sans-serif;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: .95rem;
+  cursor: pointer;
+  border: none;
+  transition: all .18s;
+}
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn-primary   { background: var(--blue); color: #fff; box-shadow: 0 4px 14px rgba(26,63,168,.3); }
+.btn-primary:hover:not(:disabled)   { background: var(--blue2); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(26,63,168,.35); }
+.btn-gold      { background: var(--gold); color: var(--text); box-shadow: 0 4px 14px rgba(240,180,41,.3); }
+.btn-gold:hover:not(:disabled)      { background: var(--gold2); transform: translateY(-2px); }
+.btn-outline   { background: transparent; color: var(--blue); border: 2px solid var(--border); }
+.btn-outline:hover:not(:disabled)   { border-color: var(--blue); background: var(--blue-pale); }
+.btn-ghost     { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+.btn-ghost:hover:not(:disabled)     { background: var(--bg2); color: var(--text); }
+.btn-correct   { background: var(--correct); color: #fff; box-shadow: 0 4px 14px rgba(22,163,74,.25); }
+.btn-correct:hover:not(:disabled)   { background: #15803d; transform: translateY(-2px); }
+.btn-wrong     { background: var(--wrong); color: #fff; box-shadow: 0 4px 14px rgba(220,38,38,.25); }
+.btn-wrong:hover:not(:disabled)     { background: #b91c1c; transform: translateY(-2px); }
+.btn-lg { padding: 16px 32px; font-size: 1.05rem; border-radius: 12px; }
+.btn-full { width: 100%; }
+
+input[type=text], input[type=number], textarea {
+  width: 100%;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-family: 'Outfit', sans-serif;
+  font-size: .95rem;
+  color: var(--text);
+  transition: border-color .15s, box-shadow .15s;
+  outline: none;
+}
+input:focus, textarea:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(26,63,168,.1);
+}
+label {
+  display: block;
+  font-weight: 600;
+  font-size: .85rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 6px;
+}
+
+/* ═══════════════════════════════════════════
+   SCREEN 1 — UPLOAD
+═══════════════════════════════════════════ */
+#screen-upload {
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 40px 20px;
+}
+
+.upload-card {
+  width: 100%;
+  max-width: 520px;
+  padding: 48px 40px;
+  text-align: center;
+}
+
+.upload-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 36px;
+}
+.upload-logo .logo-icon {
+  width: 64px; height: 64px;
+  font-size: 2rem;
+  border-radius: 18px;
+}
+.upload-logo .brand-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--blue);
+  line-height: 1;
+}
+.upload-logo .brand-sub {
+  font-size: .85rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.drop-zone {
+  border: 2.5px dashed var(--blue-lt);
+  border-radius: var(--radius);
+  padding: 48px 32px;
+  cursor: pointer;
+  transition: all .2s;
+  background: var(--blue-pale);
+  position: relative;
+}
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color: var(--blue);
+  background: #d0dfff;
+  transform: scale(1.01);
+}
+.drop-zone input[type=file] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.drop-icon {
+  font-size: 2.2rem;
+  margin-bottom: 14px;
+  display: block;
+}
+.drop-zone h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--blue);
+  margin-bottom: 6px;
+}
+.drop-zone p {
+  font-size: .8rem;
+  color: var(--muted);
+}
+.upload-success {
+  margin-top: 20px;
+  padding: 14px 20px;
+  background: var(--correct-bg);
+  border: 1.5px solid var(--correct);
+  border-radius: 10px;
+  color: var(--correct);
+  font-weight: 600;
+  font-size: .9rem;
+  display: none;
+}
+.upload-success.show { display: flex; align-items: center; gap: 8px; }
+
+/* ═══════════════════════════════════════════
+   SCREEN 2 — SETUP
+═══════════════════════════════════════════ */
+#screen-setup {
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 40px 20px;
+}
+
+.setup-card {
+  width: 100%;
+  max-width: 900px;
+  padding: 40px;
+}
+
+.setup-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 36px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+.setup-header h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--blue);
+}
+.setup-header p { color: var(--muted); font-size: .9rem; margin-top: 2px; }
+
+.setup-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+@media (max-width: 700px) {
+  .setup-body { grid-template-columns: 1fr; }
+}
+
+.rules-box {
+  background: var(--blue);
+  border-radius: var(--radius);
+  padding: 28px;
+  color: #fff;
+}
+.rules-box h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--gold);
+}
+.rules-box ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rules-box li {
+  font-size: .82rem;
+  line-height: 1.4;
+  display: flex;
+  gap: 8px;
+  opacity: .9;
+}
+.rules-box li::before {
+  content: '▸';
+  color: var(--gold);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.setup-inputs { display: flex; flex-direction: column; gap: 20px; }
+.input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+textarea#player-names {
+  min-height: 160px;
+  resize: vertical;
+  font-family: 'Outfit', monospace;
+  font-size: .9rem;
+}
+
+.setup-footer {
+  margin-top: 32px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+/* ═══════════════════════════════════════════
+   SCREEN 3 — LOBBY (HOST)
+═══════════════════════════════════════════ */
+#screen-lobby {
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 40px 20px;
+}
+
+.lobby-card {
+  width: 100%;
+  max-width: 620px;
+  padding: 40px;
+}
+
+.lobby-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.lobby-header h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--blue);
+}
+
+.qr-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.qr-wrap h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.4rem;
+  color: var(--blue);
+}
+#qr-canvas {
+  padding: 16px;
+  background: #fff;
+  border-radius: 16px;
+  border: 2px solid var(--border);
+  box-shadow: var(--shadow);
+}
+.qr-wrap p { color: var(--muted); font-size: .85rem; text-align: center; }
+
+.link-box {
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 28px;
+}
+.link-box label { margin-bottom: 8px; }
+.link-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.link-text {
+  flex: 1;
+  font-size: .78rem;
+  color: var(--muted);
+  word-break: break-all;
+  font-family: monospace;
+  background: var(--surface);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.players-joined {
+  margin-bottom: 24px;
+}
+.players-joined h3 {
+  font-weight: 700;
+  font-size: .85rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 10px;
+}
+.player-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.player-chip {
+  background: var(--blue-pale);
+  color: var(--blue);
+  border: 1px solid var(--blue-lt);
+  border-radius: 50px;
+  padding: 6px 14px;
+  font-size: .82rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.player-chip.joined { background: var(--correct-bg); color: var(--correct); border-color: var(--correct); }
+
+.lobby-footer {
+  display: flex;
+  gap: 12px;
+}
+
+/* ═══════════════════════════════════════════
+   SCREEN 4 — HOST GAME
+═══════════════════════════════════════════ */
+#screen-game {
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.game-topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(26,63,168,.08);
+}
+
+.game-body {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+}
+
+/* LEFT PANEL */
+.left-panel {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.scoreboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .82rem;
+}
+.scoreboard-table th {
+  text-align: left;
+  padding: 6px 8px;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  border-bottom: 2px solid var(--border);
+}
+.scoreboard-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--bg2);
+  vertical-align: middle;
+}
+.scoreboard-table tr.current-player td { background: var(--blue-pale); }
+.scoreboard-table tr.current-player td:first-child {
+  border-left: 3px solid var(--blue);
+}
+
+.player-num {
+  width: 24px; height: 24px;
+  background: var(--blue);
+  color: #fff;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .7rem;
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+.bid-cell {
+  font-weight: 700;
+  color: var(--blue);
+}
+.bid-unknown { color: var(--muted); }
+
+.score-badge {
+  display: inline-block;
+  background: var(--wrong-bg);
+  color: var(--wrong);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-weight: 700;
+  font-size: .8rem;
+  min-width: 32px;
+  text-align: center;
+}
+.score-badge.positive { background: var(--correct-bg); color: var(--correct); }
+
+.coins-badge {
+  display: inline-block;
+  background: var(--blue-pale);
+  color: var(--blue);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-weight: 700;
+  font-size: .8rem;
+}
+
+.edit-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: .72rem;
+  cursor: pointer;
+  color: var(--muted);
+  transition: all .15s;
+}
+.edit-btn:hover { background: var(--blue-pale); color: var(--blue); border-color: var(--blue); }
+
+.lock-bids-row {
+  display: flex;
+  gap: 8px;
+}
+
+.winning-bid-banner {
+  background: #fffbe6;
+  border: 1.5px solid var(--gold);
+  border-radius: 10px;
+  padding: 10px 16px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--text);
+  font-size: .9rem;
+}
+.winning-bid-banner span { color: var(--gold2); font-size: 1.1rem; }
+
+/* RIGHT PANEL */
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+.question-header {
+  background: var(--blue);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.question-header h2 {
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.current-tag {
+  background: var(--gold);
+  color: var(--text);
+  border-radius: 50px;
+  padding: 4px 14px;
+  font-size: .78rem;
+  font-weight: 700;
+  margin-left: 10px;
+}
+.timer-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,.15);
+  border-radius: 10px;
+  padding: 6px 12px;
+}
+.timer-control span {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  min-width: 40px;
+  text-align: center;
+}
+.timer-btn {
+  background: rgba(255,255,255,.2);
+  border: none;
+  color: #fff;
+  width: 26px; height: 26px;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background .15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.timer-btn:hover { background: rgba(255,255,255,.35); }
+.timer-running { color: var(--gold) !important; }
+
+.question-body {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--text);
+  flex: 1;
+}
+
+.question-image {
+  max-width: 320px;
+  max-height: 240px;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+  object-fit: contain;
+  margin-top: 20px;
+  display: block;
+}
+
+.answer-reveal {
+  background: #f0fdf4;
+  border: 2px solid var(--correct);
+  border-radius: 10px;
+  padding: 14px 20px;
+  color: var(--correct);
+  font-weight: 600;
+  font-size: .95rem;
+  display: none;
+  animation: fadeUp .25s ease;
+}
+.answer-reveal.show { display: block; }
+
+.no-bid-banner {
+  background: #fffbe6;
+  border: 2px solid var(--gold);
+  border-radius: 10px;
+  padding: 14px 20px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--text);
+  font-size: 1rem;
+  display: none;
+}
+.no-bid-banner.show { display: block; }
+
+.question-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+}
+
+/* ═══════════════════════════════════════════
+   SCREEN 5 — RESULTS
+═══════════════════════════════════════════ */
+#screen-results {
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 40px 20px;
+}
+
+.results-card {
+  width: 100%;
+  max-width: 680px;
+  padding: 48px 40px;
+  text-align: center;
+}
+
+.trophy-wrap {
+  margin-bottom: 28px;
+}
+.trophy-icon {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 12px;
+  animation: bounceIn .6s cubic-bezier(.34,1.56,.64,1);
+}
+.results-card h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--blue);
+  margin-bottom: 4px;
+}
+.results-card h1 span { color: var(--gold2); }
+.results-card > p { color: var(--muted); margin-bottom: 36px; }
+
+.final-scores {
+  background: var(--blue);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 32px;
+  text-align: left;
+}
+.final-scores-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+}
+.final-scores-header h3 {
+  color: var(--gold);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.2rem;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.results-table th {
+  padding: 10px 16px;
+  color: rgba(255,255,255,.6);
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  text-align: left;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+}
+.results-table td {
+  padding: 14px 16px;
+  color: #fff;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  font-size: .9rem;
+}
+.results-table tr:last-child td { border-bottom: none; }
+.results-table tr:first-child td { background: rgba(240,180,41,.15); }
+
+.rank-badge {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  font-size: .8rem;
+  background: rgba(255,255,255,.15);
+  color: #fff;
+}
+.rank-badge.gold-rank { background: var(--gold); color: var(--text); }
+
+/* ═══════════════════════════════════════════
+   PLAYER SCREENS
+═══════════════════════════════════════════ */
+.player-screen {
+  display: none;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  flex-direction: column;
+}
+.player-screen.active { display: flex; }
+
+.player-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 32px 28px;
+  position: relative;
+}
+
+.player-card-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.player-card-header .logo-icon {
+  width: 52px; height: 52px;
+  font-size: 1.6rem;
+  border-radius: 14px;
+  margin: 0 auto 12px;
+}
+.player-card-header h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--blue);
+}
+.player-card-header p { color: var(--muted); font-size: .85rem; }
+
+.player-name-display {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.player-name-display h3 {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--text);
+}
+.player-name-display p { color: var(--muted); font-size: .85rem; }
+
+.coins-display {
+  background: var(--blue-pale);
+  border: 1.5px solid var(--blue-lt);
+  border-radius: 10px;
+  padding: 14px 20px;
+  text-align: center;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.coins-display .coin-icon { font-size: 1.3rem; }
+.coins-display strong { font-size: 1.5rem; font-weight: 700; color: var(--blue); }
+.coins-display span { color: var(--muted); font-size: .85rem; }
+
+.waiting-box {
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: .9rem;
+  line-height: 1.5;
+}
+.waiting-dot {
+  display: inline-block;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:.3} 50%{opacity:1} }
+
+.bid-section { display: flex; flex-direction: column; gap: 12px; }
+.bid-label {
+  text-align: center;
+  font-weight: 700;
+  color: var(--blue);
+  font-size: .95rem;
+}
+.bid-input-wrap { position: relative; }
+.bid-input-wrap input {
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 700;
+  padding: 16px;
+  color: var(--blue);
+}
+.bid-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.all-in-btn {
+  position: absolute;
+  top: 12px; right: 12px;
+  background: var(--gold);
+  color: var(--text);
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: .75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s;
+}
+.all-in-btn:hover { background: var(--gold2); }
+
+.bid-submitted {
+  background: var(--correct-bg);
+  border: 2px solid var(--correct);
+  border-radius: 10px;
+  padding: 24px;
+  text-align: center;
+  display: none;
+}
+.bid-submitted.show { display: block; animation: fadeUp .3s ease; }
+.bid-submitted h3 { color: var(--correct); font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+.bid-submitted .bid-amount { font-size: 2rem; font-weight: 700; color: var(--correct); }
+.bid-submitted p { color: var(--muted); font-size: .85rem; margin-top: 6px; }
+
+/* Lobby player list */
+.lobby-player-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.lobby-player-item {
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all .18s;
+}
+.lobby-player-item:hover {
+  border-color: var(--blue);
+  background: var(--blue-pale);
+  transform: translateX(4px);
+}
+.lobby-player-item.taken {
+  opacity: .5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.lobby-player-item .pli-left {
+  display: flex; align-items: center; gap: 12px;
+}
+.lobby-player-item .seat-num {
+  width: 32px; height: 32px;
+  background: var(--blue);
+  color: #fff;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  font-size: .85rem;
+}
+.lobby-player-item .pli-name { font-weight: 600; color: var(--text); }
+.lobby-player-item .tap-join { font-size: .8rem; color: var(--blue); font-weight: 600; }
+.game-id-text { font-size: .75rem; color: var(--muted); text-align: center; font-family: monospace; }
+
+/* Confirm modal */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(10,20,60,.5);
+  backdrop-filter: blur(4px);
+  z-index: 500;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+.modal-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 36px 32px;
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  animation: popIn .25s cubic-bezier(.34,1.56,.64,1);
+}
+.modal-box h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--blue);
+  margin-bottom: 8px;
+}
+.modal-box p { color: var(--muted); margin-bottom: 8px; font-size: .9rem; }
+.modal-amount {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--blue);
+  margin: 12px 0 24px;
+  display: block;
+}
+.modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* Edit bid modal */
+.edit-modal-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px 28px;
+  max-width: 340px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  animation: popIn .25s cubic-bezier(.34,1.56,.64,1);
+}
+.edit-modal-box h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem;
+  color: var(--blue);
+  margin-bottom: 16px;
+  font-weight: 700;
+}
+
+/* ═══════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════ */
+@keyframes fadeUp {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+@keyframes popIn {
+  from { transform: scale(.88); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+@keyframes bounceIn {
+  from { transform: scale(.5) rotate(-10deg); opacity: 0; }
+  to   { transform: scale(1)  rotate(0deg);   opacity: 1; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; } to { opacity: 1; }
+}
+
+.screen { animation: fadeIn .3s ease; }
+
+/* Responsive */
+@media (max-width: 860px) {
+  .game-body { grid-template-columns: 1fr; }
+  .left-panel { border-right: none; border-bottom: 1px solid var(--border); }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     SCREEN 1 — UPLOAD TSV
+════════════════════════════════════════ -->
+<div id="screen-upload" class="screen active">
+  <div class="upload-card card">
+    <div class="upload-logo">
+      <div class="logo-icon">?</div>
+      <div>
+        <div class="brand-name">What's Your Bidding</div>
+        <div class="brand-sub">The quiz where knowledge meets strategy</div>
+      </div>
+    </div>
+
+    <div class="drop-zone" id="drop-zone">
+      <input type="file" id="tsv-file" accept=".tsv,.txt"/>
+      <span class="drop-icon">⬆</span>
+      <h3>Click to upload TSV file</h3>
+      <p>Required columns: QnNo, QnText, AnsText, ImgUrl, AudUrl, VidUrl</p>
+    </div>
+
+    <div class="upload-success" id="upload-success">
+      ✓ <span id="upload-msg">File loaded successfully</span>
+    </div>
+
+    <div style="margin-top:24px; display:none;" id="upload-next-wrap">
+      <button class="btn btn-primary btn-lg btn-full" onclick="goToSetup()">
+        Continue to Setup →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SCREEN 2 — SETUP
+════════════════════════════════════════ -->
+<div id="screen-setup" class="screen">
+  <div class="setup-card card">
+    <div class="setup-header">
+      <div class="logo-mark">
+        <div class="logo-icon" style="width:40px;height:40px;font-size:1.2rem;">?</div>
+        <div>
+          <h1>Game Setup</h1>
+          <p>Configure your quiz session</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="setup-body">
+      <div class="setup-inputs">
+        <div>
+          <label for="player-names">Player Names (one per line)</label>
+          <textarea id="player-names" placeholder="Player 1&#10;Player 2&#10;Player 3&#10;..."></textarea>
+        </div>
+        <div class="input-row">
+          <div>
+            <label for="starting-coins">Starting Coins</label>
+            <input type="number" id="starting-coins" value="500" min="100" step="100"/>
+          </div>
+          <div>
+            <label for="question-time">Question Time (sec)</label>
+            <input type="number" id="question-time" value="30" min="10" step="5"/>
+          </div>
+        </div>
+        <button class="btn btn-gold btn-lg" onclick="generateSeatOrder()">
+          ⇄ Generate Seat Order
+        </button>
+        <div id="seat-preview" style="display:none;">
+          <label style="margin-bottom:8px;">Seat Order (randomised)</label>
+          <div id="seat-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+      </div>
+
+      <div class="rules-box">
+        <h3>Game Rules</h3>
+        <ul>
+          <li>Choose starting coins (default: 500)</li>
+          <li>Random seating order for each question</li>
+          <li>See question and bid as many coins as you want</li>
+          <li>Highest bidder gets to answer first</li>
+          <li>If correct, only half their bid is deducted</li>
+          <li>If wrong, whole bid amount is deducted</li>
+          <li>Question passes to next highest bidders</li>
+          <li>Next bidders don't lose or win coins if correct</li>
+          <li>Non-bidders can win 10% of starting coins if correct</li>
+          <li>Winner: most points, then conversions, then coins</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="setup-footer">
+      <button class="btn btn-ghost" onclick="goToScreen('screen-upload')">← Back</button>
+      <button class="btn btn-primary btn-lg" onclick="goToLobby()">Create Lobby →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SCREEN 3 — LOBBY (HOST VIEW)
+════════════════════════════════════════ -->
+<div id="screen-lobby" class="screen">
+  <div class="lobby-card card">
+    <div class="lobby-header">
+      <div class="logo-mark">
+        <div class="logo-icon" style="width:40px;height:40px;font-size:1.2rem;">?</div>
+        <div>
+          <h1>Game Lobby</h1>
+          <p>Share the link so players can join</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="qr-wrap">
+      <h2>Scan to Join</h2>
+      <div id="qr-canvas"></div>
+      <p>Players can scan this QR code or use the link below</p>
+    </div>
+
+    <div class="link-box">
+      <label>Lobby Link</label>
+      <div class="link-row">
+        <div class="link-text" id="lobby-link-text">Generating...</div>
+        <button class="btn btn-outline" onclick="copyLobbyLink()" style="padding:8px 14px;font-size:.8rem;white-space:nowrap;">
+          📋 Copy
+        </button>
+      </div>
+    </div>
+
+    <div class="players-joined">
+      <h3>Players (<span id="joined-count">0</span>/<span id="total-count">0</span> joined)</h3>
+      <div class="player-chips" id="player-chips"></div>
+    </div>
+
+    <div class="lobby-footer">
+      <button class="btn btn-ghost btn-lg" style="flex:1" onclick="goToScreen('screen-setup')">← Back</button>
+      <button class="btn btn-primary btn-lg" style="flex:2" onclick="startGame()">Start Game →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SCREEN 4 — HOST GAME
+════════════════════════════════════════ -->
+<div id="screen-game" class="screen">
+  <div class="game-topbar">
+    <div class="logo-mark">
+      <div class="logo-icon" style="width:36px;height:36px;font-size:1.1rem;border-radius:10px;">?</div>
+      <div class="logo-text">What's Your Bidding <span>Quizmaster View</span></div>
+    </div>
+    <button class="btn btn-ghost" style="font-size:.82rem;padding:8px 14px;" onclick="reloadTSV()">↺ Reload TSV</button>
+  </div>
+
+  <div class="game-body">
+    <!-- LEFT: Scoreboard -->
+    <div class="left-panel">
+      <table class="scoreboard-table" id="scoreboard"></table>
+
+      <div class="lock-bids-row">
+        <button class="btn btn-gold btn-lg" style="flex:1" id="lock-bids-btn" onclick="lockBids()">
+          🔒 Lock Bids
+        </button>
+        <button class="btn btn-ghost" style="padding:12px 14px;" onclick="undoAction()" title="Undo">↩</button>
+      </div>
+
+      <div class="winning-bid-banner" id="winning-bid-banner" style="display:none;">
+        Winning Bid: <span id="winning-bid-val">0</span>
+      </div>
+
+      <div id="no-bid-banner" class="no-bid-banner"></div>
+    </div>
+
+    <!-- RIGHT: Question -->
+    <div class="right-panel">
+      <div class="question-header" id="question-header">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <h2 id="q-label">Question 1 of N</h2>
+          <span class="current-tag" id="current-tag" style="display:none;"></span>
+        </div>
+        <div class="timer-control">
+          <button class="timer-btn" onclick="adjustTimer(-5)">−</button>
+          <span id="timer-display">30s</span>
+          <button class="timer-btn" onclick="adjustTimer(5)">+</button>
+        </div>
+      </div>
+
+      <div class="question-body" id="question-body">
+        <div id="q-text"></div>
+        <img id="q-image" class="question-image" src="" style="display:none;" alt="Question image"/>
+        <div class="answer-reveal" id="answer-reveal"></div>
+      </div>
+
+      <div class="question-actions" id="question-actions">
+        <!-- Dynamically populated -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SCREEN 5 — RESULTS
+════════════════════════════════════════ -->
+<div id="screen-results" class="screen">
+  <div class="results-card card">
+    <div class="trophy-wrap">
+      <span class="trophy-icon">🏆</span>
+      <h1>Quiz Complete!</h1>
+    </div>
+    <p>Here are the final standings</p>
+
+    <div class="final-scores">
+      <div class="final-scores-header">
+        <h3>Final Scores</h3>
+      </div>
+      <table class="results-table" id="results-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Player</th>
+            <th>Score</th>
+            <th>Coins</th>
+            <th>Bids Won</th>
+            <th>Bids Conv</th>
+          </tr>
+        </thead>
+        <tbody id="results-body"></tbody>
+      </table>
+    </div>
+
+    <button class="btn btn-primary btn-lg btn-full" onclick="newGame()">Start New Game</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PLAYER SCREENS (shown when ?player= in URL)
+════════════════════════════════════════ -->
+
+<!-- Player: Lobby select -->
+<div id="player-lobby" class="player-screen">
+  <div class="player-card card">
+    <div class="player-card-header">
+      <div class="logo-icon">?</div>
+      <h2>Game Lobby</h2>
+      <p>Click on your name to join the game</p>
+    </div>
+    <div class="lobby-player-list" id="player-lobby-list"></div>
+    <div class="game-id-text" id="player-game-id"></div>
+  </div>
+</div>
+
+<!-- Player: Waiting / Bidding -->
+<div id="player-game" class="player-screen">
+  <div class="player-card card" style="position:relative;">
+    <button class="all-in-btn" onclick="allIn()" id="all-in-btn">All In</button>
+
+    <div class="player-card-header">
+      <div class="logo-icon">?</div>
+      <h2>What's Your Bidding</h2>
+    </div>
+
+    <div class="player-name-display">
+      <h3 id="p-name-display">Player</h3>
+      <p id="p-seat-display">Seat —</p>
+    </div>
+
+    <div class="coins-display">
+      <span class="coin-icon">🪙</span>
+      <strong id="p-coins-display">500</strong>
+      <span>coins</span>
+    </div>
+
+    <div id="p-waiting" class="waiting-box">
+      Waiting for question to be displayed<span class="waiting-dot">...</span>
+    </div>
+
+    <div id="p-bidding" class="bid-section" style="display:none;">
+      <div class="bid-label" id="p-bid-label">Question 1 — Enter Your Bid</div>
+      <div class="bid-input-wrap">
+        <input type="number" id="p-bid-input" value="0" min="0" placeholder="0"/>
+      </div>
+      <div class="bid-btns">
+        <button class="btn btn-ghost btn-lg" onclick="submitNoBid()">No Bid</button>
+        <button class="btn btn-primary btn-lg" onclick="sendBid()">Send Bid</button>
+      </div>
+    </div>
+
+    <div class="bid-submitted" id="p-bid-submitted">
+      <h3>Bid Submitted!</h3>
+      <div class="bid-amount" id="p-submitted-amount">0</div>
+      <p>Waiting for all players<span class="waiting-dot">...</span></p>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Bid Modal -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal-box">
+    <h3>Confirm Bid</h3>
+    <p>Are you sure you want to bid:</p>
+    <span class="modal-amount" id="confirm-amount">0</span>
+    <div class="modal-btns">
+      <button class="btn btn-ghost btn-lg" onclick="closeModal('confirm-modal')">Cancel</button>
+      <button class="btn btn-gold btn-lg" onclick="confirmBid()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Bid Modal -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="edit-modal-box">
+    <h3>Edit Bid for <span id="edit-player-name"></span></h3>
+    <div style="margin-bottom:16px;">
+      <label>Bid Amount</label>
+      <input type="number" id="edit-bid-input" value="0" min="0"/>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost btn-lg" style="flex:1" onclick="closeModal('edit-modal')">Cancel</button>
+      <button class="btn btn-primary btn-lg" style="flex:1" onclick="saveEditedBid()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   APP STATE
+═══════════════════════════════════════════════════════════ */
+const STATE = {
+  questions: [],
+  players: [],           // [{name, seat, coins, score, won, conv, joined}]
+  gameId: null,
+  startingCoins: 500,
+  questionTime: 30,
+  currentQ: 0,
+  bidsLocked: false,
+  bids: {},              // {playerName: amount}
+  currentBidder: null,   // index into sorted bidders
+  sortedBidders: [],     // [{name, bid}] sorted desc
+  history: [],           // undo stack of snapshots
+  timerVal: 30,
+  timerInterval: null,
+  // Player side
+  isPlayer: false,
+  myName: null,
+  mySeat: null,
+  pendingBid: 0,
+};
+
+/* ═══════════════════════════════════════════════════════════
+   FIREBASE HELPERS (with local fallback)
+═══════════════════════════════════════════════════════════ */
+function fbRef(path) {
+  if (!window._fbReady) return null;
+  return window._fb.ref(window._fb.db, path);
+}
+async function fbSet(path, val) {
+  if (!window._fbReady) { localSet(path, val); return; }
+  await window._fb.set(fbRef(path), val);
+}
+async function fbGet(path) {
+  if (!window._fbReady) return localGet(path);
+  const snap = await window._fb.get(fbRef(path));
+  return snap.exists() ? snap.val() : null;
+}
+function fbWatch(path, cb) {
+  if (!window._fbReady) { return; }
+  window._fb.onValue(fbRef(path), snap => cb(snap.exists() ? snap.val() : null));
+}
+
+// Local storage fallback
+function localSet(path, val) {
+  try { localStorage.setItem('wyb_' + path, JSON.stringify(val)); } catch(e){}
+}
+function localGet(path) {
+  try { const v = localStorage.getItem('wyb_' + path); return v ? JSON.parse(v) : null; } catch(e){ return null; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ROUTING — detect if player or host
+═══════════════════════════════════════════════════════════ */
+function init() {
+  const params = new URLSearchParams(location.search);
+  const gameId = params.get('game');
+  const isLobby = params.get('lobby') === 'true';
+  const playerName = params.get('player');
+
+  if (gameId && (isLobby || playerName)) {
+    // PLAYER MODE
+    STATE.isPlayer = true;
+    STATE.gameId = gameId;
+    hideAllScreens();
+    if (isLobby) {
+      showPlayerLobby(gameId);
+    } else if (playerName) {
+      STATE.myName = decodeURIComponent(playerName);
+      showPlayerGame(gameId);
+    }
+  } else {
+    // HOST MODE
+    goToScreen('screen-upload');
+    setupDropZone();
+  }
+}
+
+function hideAllScreens() {
+  document.querySelectorAll('.screen, .player-screen').forEach(s => {
+    s.classList.remove('active');
+  });
+}
+
+function goToScreen(id) {
+  hideAllScreens();
+  document.getElementById(id).classList.add('active');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN 1 — TSV UPLOAD
+═══════════════════════════════════════════════════════════ */
+function setupDropZone() {
+  const dz = document.getElementById('drop-zone');
+  const fi = document.getElementById('tsv-file');
+
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) parseTSV(file);
+  });
+  fi.addEventListener('change', () => { if (fi.files[0]) parseTSV(fi.files[0]); });
+}
+
+function parseTSV(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    const lines = text.trim().split('\n');
+    const headers = lines[0].split('\t').map(h => h.trim());
+
+    const qi = headers.indexOf('QnText');
+    const ai = headers.indexOf('AnsText');
+    const ii = headers.indexOf('ImgUrl');
+    const avi = headers.indexOf('AudUrl');
+    const vi = headers.indexOf('VidUrl');
+    const ni = headers.indexOf('QnNo');
+
+    if (qi < 0 || ai < 0) {
+      alert('TSV must have at least QnText and AnsText columns.');
+      return;
+    }
+
+    STATE.questions = lines.slice(1).filter(l => l.trim()).map(line => {
+      const cols = line.split('\t');
+      return {
+        no:     cols[ni]  ? cols[ni].trim()  : '',
+        text:   cols[qi]  ? cols[qi].trim()  : '',
+        answer: cols[ai]  ? cols[ai].trim()  : '',
+        img:    cols[ii]  ? cols[ii].trim()  : '',
+        audio:  cols[avi] ? cols[avi].trim() : '',
+        video:  cols[vi]  ? cols[vi].trim()  : '',
+      };
+    }).filter(q => q.text);
+
+    const succ = document.getElementById('upload-success');
+    const msg  = document.getElementById('upload-msg');
+    const next = document.getElementById('upload-next-wrap');
+    succ.classList.add('show');
+    msg.textContent = `${STATE.questions.length} questions loaded from "${file.name}"`;
+    next.style.display = 'block';
+  };
+  reader.readAsText(file);
+}
+
+function goToSetup() {
+  if (!STATE.questions.length) { alert('Please upload a TSV file first.'); return; }
+  goToScreen('screen-setup');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN 2 — SETUP
+═══════════════════════════════════════════════════════════ */
+function generateSeatOrder() {
+  const names = document.getElementById('player-names').value
+    .split('\n').map(n => n.trim()).filter(Boolean);
+  if (!names.length) { alert('Please enter at least one player name.'); return; }
+
+  // Shuffle
+  const shuffled = [...names].sort(() => Math.random() - .5);
+  STATE.players = shuffled.map((name, i) => ({
+    name, seat: i + 1,
+    coins: parseInt(document.getElementById('starting-coins').value) || 500,
+    score: 0, won: 0, conv: 0, joined: false
+  }));
+
+  const preview = document.getElementById('seat-preview');
+  const list    = document.getElementById('seat-list');
+  preview.style.display = 'block';
+  list.innerHTML = STATE.players.map(p => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;">
+      <span style="background:var(--blue);color:#fff;border-radius:6px;padding:2px 10px;font-weight:700;font-size:.82rem;">Seat ${p.seat}</span>
+      <span style="font-weight:600;">${p.name}</span>
+    </div>
+  `).join('');
+}
+
+function goToLobby() {
+  if (!STATE.players.length) { alert('Please generate seat order first.'); return; }
+  STATE.startingCoins = parseInt(document.getElementById('starting-coins').value) || 500;
+  STATE.questionTime  = parseInt(document.getElementById('question-time').value) || 30;
+  STATE.timerVal      = STATE.questionTime;
+
+  // Generate game ID
+  STATE.gameId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : Math.random().toString(36).slice(2) + Date.now().toString(36);
+
+  // Navigate to lobby immediately - do not block on Firebase
+  buildLobbyUI();
+  goToScreen('screen-lobby');
+
+  // Push to Firebase in background
+  const gameData = {
+    id: STATE.gameId,
+    status: 'lobby',
+    currentQ: 0,
+    startingCoins: STATE.startingCoins,
+    questionTime: STATE.questionTime,
+    players: STATE.players.reduce((acc, p) => { acc[p.name] = p; return acc; }, {}),
+    bids: {},
+    phase: 'waiting',
+  };
+  fbSet(`games/${STATE.gameId}`, gameData).catch(() => {});
+
+  // Watch for player joins (no-op if Firebase not configured)
+  fbWatch(`games/${STATE.gameId}/players`, playersData => {
+    if (!playersData) return;
+    STATE.players = Object.values(playersData);
+    updateLobbyChips();
+  });
+}
+
+function buildLobbyUI() {
+  const base = location.origin + location.pathname;
+  const lobbyUrl = `${base}?game=${STATE.gameId}&lobby=true`;
+
+  document.getElementById('lobby-link-text').textContent = lobbyUrl;
+  document.getElementById('total-count').textContent = STATE.players.length;
+
+  // QR code
+  document.getElementById('qr-canvas').innerHTML = '';
+  try {
+    new QRCode(document.getElementById('qr-canvas'), {
+      text: lobbyUrl,
+      width: 200, height: 200,
+      colorDark: '#1a3fa8', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  } catch(e) {
+    document.getElementById('qr-canvas').innerHTML = `<div style="padding:20px;color:var(--muted);font-size:.85rem;">QR library not available.<br>Share the link above.</div>`;
+  }
+
+  updateLobbyChips();
+}
+
+function updateLobbyChips() {
+  const chips = document.getElementById('player-chips');
+  const joined = STATE.players.filter(p => p.joined).length;
+  document.getElementById('joined-count').textContent = joined;
+  chips.innerHTML = STATE.players.map(p => `
+    <div class="player-chip ${p.joined ? 'joined' : ''}">
+      ${p.joined ? '✓' : '⏳'} ${p.name} (Seat ${p.seat})
+    </div>
+  `).join('');
+}
+
+function copyLobbyLink() {
+  const txt = document.getElementById('lobby-link-text').textContent;
+  navigator.clipboard.writeText(txt).then(() => {
+    const btn = event.target;
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = '📋 Copy', 2000);
+  });
+}
+
+function startGame() {
+  fbSet(`games/${STATE.gameId}/status`, 'playing').catch(()=>{});
+  fbSet(`games/${STATE.gameId}/phase`, 'waiting').catch(()=>{});
+  STATE.currentQ = 0;
+  renderQuestion();
+  goToScreen('screen-game');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN 4 — HOST GAME
+═══════════════════════════════════════════════════════════ */
+function renderQuestion() {
+  const q = STATE.questions[STATE.currentQ];
+  if (!q) { showResults(); return; }
+
+  STATE.bids = {};
+  STATE.bidsLocked = false;
+  STATE.currentBidder = 0;
+  STATE.sortedBidders = [];
+  STATE.timerVal = STATE.questionTime;
+  clearInterval(STATE.timerInterval);
+
+  // Push question to Firebase so players see it
+  fbSet(`games/${STATE.gameId}/currentQ`, STATE.currentQ);
+  fbSet(`games/${STATE.gameId}/phase`, 'bidding');
+  fbSet(`games/${STATE.gameId}/bids`, {});
+
+  // Watch bids
+  fbWatch(`games/${STATE.gameId}/bids`, bidsData => {
+    if (bidsData) STATE.bids = bidsData;
+    if (!STATE.bidsLocked) updateScoreboardBids();
+  });
+
+  // Re-randomise seat order for this question
+  STATE.players = [...STATE.players].sort(() => Math.random() - .5)
+    .map((p, i) => ({ ...p, seatThisQ: i + 1 }));
+
+  // Update header
+  document.getElementById('q-label').textContent = `Question ${STATE.currentQ + 1} of ${STATE.questions.length}`;
+  document.getElementById('current-tag').style.display = 'none';
+  document.getElementById('timer-display').textContent = STATE.timerVal + 's';
+  document.getElementById('timer-display').classList.remove('timer-running');
+
+  // Question body
+  document.getElementById('q-text').textContent = q.text;
+  const img = document.getElementById('q-image');
+  if (q.img) { img.src = q.img; img.style.display = 'block'; }
+  else { img.style.display = 'none'; }
+
+  document.getElementById('answer-reveal').classList.remove('show');
+  document.getElementById('winning-bid-banner').style.display = 'none';
+  document.getElementById('no-bid-banner').classList.remove('show');
+
+  renderScoreboard();
+  renderActions('pre-lock');
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(STATE.timerInterval);
+  const disp = document.getElementById('timer-display');
+  disp.classList.add('timer-running');
+  STATE.timerInterval = setInterval(() => {
+    STATE.timerVal--;
+    disp.textContent = STATE.timerVal + 's';
+    if (STATE.timerVal <= 0) {
+      clearInterval(STATE.timerInterval);
+      disp.classList.remove('timer-running');
+    }
+  }, 1000);
+}
+
+function adjustTimer(delta) {
+  STATE.timerVal = Math.max(5, STATE.timerVal + delta);
+  document.getElementById('timer-display').textContent = STATE.timerVal + 's';
+}
+
+function renderScoreboard() {
+  const table = document.getElementById('scoreboard');
+  const rows = STATE.players.map((p, i) => {
+    const bidVal = STATE.bids[p.name];
+    const bidDisplay = !STATE.bidsLocked
+      ? (bidVal !== undefined ? `<span class="bid-cell">${bidVal}</span>` : '<span class="bid-unknown">?</span>')
+      : `<span class="bid-cell">${bidVal !== undefined ? bidVal : 0}</span>`;
+
+    const isCurrent = STATE.bidsLocked && STATE.sortedBidders.length > 0 &&
+      STATE.sortedBidders[STATE.currentBidder] &&
+      STATE.sortedBidders[STATE.currentBidder].name === p.name;
+
+    return `<tr class="${isCurrent ? 'current-player' : ''}">
+      <td><span class="player-num">${p.seatThisQ || p.seat}</span>${p.name}</td>
+      <td>${bidDisplay}</td>
+      <td><button class="edit-btn" onclick="openEditModal('${p.name}')">✏</button></td>
+      <td><span class="score-badge ${p.score > 0 ? 'positive' : ''}">${p.score}</span></td>
+      <td><span class="coins-badge">🪙 ${p.coins}</span></td>
+      <td>${p.won}</td>
+      <td>${p.conv}</td>
+    </tr>`;
+  }).join('');
+
+  table.innerHTML = `<thead><tr>
+    <th>Player</th><th>Bid</th><th>Edit</th>
+    <th>Score</th><th>Coins</th><th>Won</th><th>Conv</th>
+  </tr></thead><tbody>${rows}</tbody>`;
+}
+
+function updateScoreboardBids() {
+  renderScoreboard();
+}
+
+function renderActions(phase) {
+  const wrap = document.getElementById('question-actions');
+
+  if (phase === 'pre-lock') {
+    wrap.innerHTML = ''; // Lock Bids is in left panel
+  } else if (phase === 'judge') {
+    wrap.innerHTML = `
+      <button class="btn btn-correct btn-lg" style="flex:2" onclick="judgeAnswer(true)">✓ Correct</button>
+      <button class="btn btn-wrong btn-lg" style="flex:2" onclick="judgeAnswer(false)">✗ Miss</button>
+      <button class="btn btn-ghost btn-lg" style="flex:1" onclick="undoAction()">↩ Undo</button>
+    `;
+  } else if (phase === 'show-answer') {
+    wrap.innerHTML = `
+      <button class="btn btn-primary btn-lg" style="flex:3" onclick="showAnswer()">👁 Show Answer</button>
+      <button class="btn btn-ghost btn-lg" style="flex:1" onclick="undoAction()">↩ Undo</button>
+    `;
+  } else if (phase === 'next') {
+    wrap.innerHTML = `
+      <button class="btn btn-gold btn-lg" style="flex:3" onclick="nextQuestion()">Next Question ›</button>
+      <button class="btn btn-ghost btn-lg" style="flex:1" onclick="undoAction()">↩ Undo</button>
+    `;
+  } else if (phase === 'finished') {
+    wrap.innerHTML = `
+      <button class="btn btn-primary btn-lg btn-full" onclick="showResults()">See Final Results 🏆</button>
+    `;
+  }
+}
+
+function lockBids() {
+  saveSnapshot();
+  STATE.bidsLocked = true;
+  clearInterval(STATE.timerInterval);
+  document.getElementById('timer-display').classList.remove('timer-running');
+
+  fbSet(`games/${STATE.gameId}/phase`, 'locked');
+
+  // Build sorted bidder list (desc by bid, tiebreak by seat)
+  STATE.sortedBidders = STATE.players
+    .map(p => ({ name: p.name, bid: STATE.bids[p.name] !== undefined ? Number(STATE.bids[p.name]) : 0 }))
+    .sort((a, b) => b.bid - a.bid || (STATE.players.findIndex(p=>p.name===a.name)) - (STATE.players.findIndex(p=>p.name===b.name)));
+
+  STATE.currentBidder = 0;
+  const topBid = STATE.sortedBidders[0]?.bid || 0;
+
+  document.getElementById('winning-bid-banner').style.display = 'block';
+  document.getElementById('winning-bid-val').textContent = topBid;
+
+  if (topBid === 0) {
+    // Nobody bid — find first player in seat order, award 10%
+    const firstPlayer = STATE.players[0];
+    const reward = Math.round(STATE.startingCoins * 0.1);
+    document.getElementById('no-bid-banner').textContent = `${firstPlayer.name} wins ${reward} coins`;
+    document.getElementById('no-bid-banner').classList.add('show');
+    // Award coins
+    const pi = STATE.players.findIndex(p => p.name === firstPlayer.name);
+    STATE.players[pi].coins += reward;
+    STATE.players[pi].score += 1;
+    syncPlayers();
+    renderScoreboard();
+    renderActions('show-answer');
+  } else {
+    // Show current top bidder
+    document.getElementById('current-tag').textContent = `Current: ${STATE.sortedBidders[0].name}`;
+    document.getElementById('current-tag').style.display = 'inline-block';
+    renderScoreboard();
+    renderActions('judge');
+  }
+}
+
+function judgeAnswer(correct) {
+  saveSnapshot();
+  const bidder = STATE.sortedBidders[STATE.currentBidder];
+  if (!bidder) return;
+
+  const pi = STATE.players.findIndex(p => p.name === bidder.name);
+  const bid = bidder.bid;
+
+  if (correct) {
+    // Half bid deducted, score point, mark won+conv
+    const deduction = Math.floor(bid / 2);
+    STATE.players[pi].coins -= deduction;
+    STATE.players[pi].score += 1;
+    STATE.players[pi].won += 1;
+    STATE.players[pi].conv += 1;
+    syncPlayers();
+    renderScoreboard();
+    showAnswer();
+  } else {
+    // Full bid deducted
+    STATE.players[pi].coins -= bid;
+    STATE.players[pi].won += 1;
+    syncPlayers();
+
+    // Move to next bidder
+    STATE.currentBidder++;
+    const next = STATE.sortedBidders[STATE.currentBidder];
+
+    if (!next || next.bid === 0) {
+      // No more meaningful bidders — show answer
+      renderScoreboard();
+      renderActions('show-answer');
+    } else {
+      document.getElementById('current-tag').textContent = `Current: ${next.name}`;
+      renderScoreboard();
+      renderActions('judge');
+    }
+  }
+}
+
+function showAnswer() {
+  const q = STATE.questions[STATE.currentQ];
+  const reveal = document.getElementById('answer-reveal');
+  reveal.textContent = '✓ ' + q.answer;
+  reveal.classList.add('show');
+  fbSet(`games/${STATE.gameId}/phase`, 'answered');
+
+  const isLast = STATE.currentQ >= STATE.questions.length - 1;
+  renderActions(isLast ? 'finished' : 'next');
+}
+
+function nextQuestion() {
+  STATE.currentQ++;
+  renderQuestion();
+}
+
+function undoAction() {
+  if (!STATE.history.length) return;
+  const snapshot = STATE.history.pop();
+  restoreSnapshot(snapshot);
+}
+
+function saveSnapshot() {
+  STATE.history.push({
+    players: JSON.parse(JSON.stringify(STATE.players)),
+    bids: { ...STATE.bids },
+    bidsLocked: STATE.bidsLocked,
+    currentBidder: STATE.currentBidder,
+    sortedBidders: [...STATE.sortedBidders],
+    answerShown: document.getElementById('answer-reveal').classList.contains('show'),
+    winningBidShown: document.getElementById('winning-bid-banner').style.display !== 'none',
+  });
+}
+
+function restoreSnapshot(snap) {
+  STATE.players = snap.players;
+  STATE.bids = snap.bids;
+  STATE.bidsLocked = snap.bidsLocked;
+  STATE.currentBidder = snap.currentBidder;
+  STATE.sortedBidders = snap.sortedBidders;
+
+  if (!snap.answerShown) document.getElementById('answer-reveal').classList.remove('show');
+  if (!snap.winningBidShown) document.getElementById('winning-bid-banner').style.display = 'none';
+
+  const topBid = STATE.sortedBidders[STATE.currentBidder];
+  if (topBid) {
+    document.getElementById('current-tag').textContent = `Current: ${topBid.name}`;
+    document.getElementById('current-tag').style.display = 'inline-block';
+  }
+
+  document.getElementById('no-bid-banner').classList.remove('show');
+  renderScoreboard();
+
+  if (!STATE.bidsLocked) {
+    renderActions('pre-lock');
+  } else if (snap.answerShown) {
+    const isLast = STATE.currentQ >= STATE.questions.length - 1;
+    renderActions(isLast ? 'finished' : 'next');
+  } else {
+    renderActions('judge');
+  }
+  syncPlayers();
+}
+
+function reloadTSV() {
+  goToScreen('screen-upload');
+}
+
+async function syncPlayers() {
+  const playersObj = STATE.players.reduce((acc, p) => { acc[p.name] = p; return acc; }, {});
+  await fbSet(`games/${STATE.gameId}/players`, playersObj);
+}
+
+/* Edit bid modal */
+let editingPlayer = null;
+function openEditModal(playerName) {
+  editingPlayer = playerName;
+  document.getElementById('edit-player-name').textContent = playerName;
+  const currentBid = STATE.bids[playerName] !== undefined ? STATE.bids[playerName] : 0;
+  document.getElementById('edit-bid-input').value = currentBid;
+  document.getElementById('edit-modal').classList.add('active');
+}
+function saveEditedBid() {
+  const val = parseInt(document.getElementById('edit-bid-input').value) || 0;
+  STATE.bids[editingPlayer] = val;
+  fbSet(`games/${STATE.gameId}/bids/${editingPlayer}`, val);
+  closeModal('edit-modal');
+  updateScoreboardBids();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN 5 — RESULTS
+═══════════════════════════════════════════════════════════ */
+function showResults() {
+  fbSet(`games/${STATE.gameId}/phase`, 'finished');
+
+  // Sort: score desc, conv desc, coins desc
+  const sorted = [...STATE.players].sort((a, b) =>
+    b.score - a.score || b.conv - a.conv || b.coins - a.coins
+  );
+
+  const tbody = document.getElementById('results-body');
+  tbody.innerHTML = sorted.map((p, i) => `
+    <tr>
+      <td><span class="rank-badge ${i === 0 ? 'gold-rank' : ''}">${i + 1}</span></td>
+      <td style="font-weight:700;">${p.name}</td>
+      <td style="font-weight:700;">${p.score}</td>
+      <td>${p.coins}</td>
+      <td>${p.won}</td>
+      <td>${p.conv}</td>
+    </tr>
+  `).join('');
+
+  goToScreen('screen-results');
+}
+
+function newGame() {
+  STATE.questions = [];
+  STATE.players = [];
+  STATE.gameId = null;
+  STATE.currentQ = 0;
+  STATE.history = [];
+  goToScreen('screen-upload');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PLAYER SIDE
+═══════════════════════════════════════════════════════════ */
+async function showPlayerLobby(gameId) {
+  hideAllScreens();
+  document.getElementById('player-lobby').classList.add('active');
+  document.getElementById('player-game-id').textContent = `Game ID: ${gameId}`;
+
+  // Load players
+  const gameData = await fbGet(`games/${gameId}`);
+  if (!gameData) {
+    document.getElementById('player-lobby-list').innerHTML = '<p style="color:var(--muted);text-align:center;">Game not found.</p>';
+    return;
+  }
+
+  const players = Object.values(gameData.players || {});
+  STATE.players = players;
+
+  const list = document.getElementById('player-lobby-list');
+  list.innerHTML = players.map(p => `
+    <div class="lobby-player-item ${p.joined ? 'taken' : ''}" onclick="joinAsSeat('${p.name}', '${gameId}')">
+      <div class="pli-left">
+        <div class="seat-num">${p.seat}</div>
+        <div class="pli-name">${p.name}</div>
+      </div>
+      <div class="tap-join">${p.joined ? 'Joined ✓' : 'Tap to join'}</div>
+    </div>
+  `).join('');
+}
+
+async function joinAsSeat(playerName, gameId) {
+  STATE.myName = playerName;
+  STATE.gameId = gameId;
+  await fbSet(`games/${gameId}/players/${playerName}/joined`, true);
+
+  // Navigate to player game view
+  const url = `${location.origin}${location.pathname}?game=${gameId}&player=${encodeURIComponent(playerName)}`;
+  location.href = url;
+}
+
+async function showPlayerGame(gameId) {
+  hideAllScreens();
+  document.getElementById('player-game').classList.add('active');
+
+  // Load player info
+  const gameData = await fbGet(`games/${gameId}`);
+  if (!gameData) return;
+
+  STATE.startingCoins = gameData.startingCoins || 500;
+  const pData = gameData.players?.[STATE.myName];
+  if (!pData) return;
+
+  STATE.mySeat = pData.seat;
+  updatePlayerUI(pData);
+
+  // Watch game phase
+  fbWatch(`games/${gameId}/phase`, phase => {
+    handlePhaseChange(phase, gameId);
+  });
+
+  // Watch my player data for coin updates
+  fbWatch(`games/${gameId}/players/${STATE.myName}`, pData => {
+    if (pData) updatePlayerUI(pData);
+  });
+}
+
+function updatePlayerUI(pData) {
+  document.getElementById('p-name-display').textContent = pData.name;
+  document.getElementById('p-seat-display').textContent = `Seat ${pData.seat}`;
+  document.getElementById('p-coins-display').textContent = pData.coins;
+}
+
+function handlePhaseChange(phase, gameId) {
+  const waiting  = document.getElementById('p-waiting');
+  const bidding  = document.getElementById('p-bidding');
+  const submitted = document.getElementById('p-bid-submitted');
+
+  if (phase === 'waiting' || phase === 'lobby') {
+    waiting.style.display = 'block';
+    bidding.style.display = 'none';
+    submitted.classList.remove('show');
+  } else if (phase === 'bidding') {
+    // Get current question number
+    fbGet(`games/${gameId}/currentQ`).then(qIdx => {
+      document.getElementById('p-bid-label').textContent = `Question ${(qIdx||0)+1} — Enter Your Bid`;
+      document.getElementById('p-bid-input').value = 0;
+    });
+    waiting.style.display = 'none';
+    bidding.style.display = 'flex';
+    submitted.classList.remove('show');
+    STATE.pendingBid = null;
+  } else if (phase === 'locked' || phase === 'answered' || phase === 'finished') {
+    // If they haven't submitted yet, auto no-bid
+    if (!submitted.classList.contains('show')) {
+      waiting.style.display = 'block';
+      bidding.style.display = 'none';
+    }
+  }
+}
+
+function allIn() {
+  const coins = parseInt(document.getElementById('p-coins-display').textContent) || 0;
+  document.getElementById('p-bid-input').value = coins;
+}
+
+function sendBid() {
+  const val = parseInt(document.getElementById('p-bid-input').value) || 0;
+  const coins = parseInt(document.getElementById('p-coins-display').textContent) || 0;
+  if (val > coins) { alert(`You only have ${coins} coins!`); return; }
+  STATE.pendingBid = val;
+  document.getElementById('confirm-amount').textContent = val;
+  document.getElementById('confirm-modal').classList.add('active');
+}
+
+function submitNoBid() {
+  STATE.pendingBid = 0;
+  document.getElementById('confirm-amount').textContent = 0;
+  document.getElementById('confirm-modal').classList.add('active');
+}
+
+async function confirmBid() {
+  closeModal('confirm-modal');
+  const bid = STATE.pendingBid;
+  await fbSet(`games/${STATE.gameId}/bids/${STATE.myName}`, bid);
+
+  document.getElementById('p-bidding').style.display = 'none';
+  document.getElementById('p-waiting').style.display = 'none';
+  const sub = document.getElementById('p-bid-submitted');
+  document.getElementById('p-submitted-amount').textContent = bid;
+  sub.classList.add('show');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   STARTUP
+   Give the async Firebase module 400ms to attach to window,
+   then init regardless — goToLobby gracefully skips FB calls
+   if window._fbReady is still false.
+═══════════════════════════════════════════════════════════ */
+setTimeout(init, 400);
+</script>
+</body>
+</html>
