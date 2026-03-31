@@ -8,6 +8,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- Firebase -->
 <script type="module">
+  // ── YOUR FIREBASE CONFIG ──────────────────────────────────────
+  // IMPORTANT: paste your exact databaseURL from Firebase Console
+  // → Realtime Database → copy the URL shown at the top (e.g. https://xxx.firebaseio.com)
   const firebaseConfig = {
     apiKey: "AIzaSyAmPBZpDlTU5t3-65K2HCQtY7MvI2heQqk",
     authDomain: "what-s-your-bidding.firebaseapp.com",
@@ -18,17 +21,44 @@
     appId: "1:524774020327:web:bda3bf800a63d3c9f43e42"
   };
 
+  function showFbStatus(msg, ok) {
+    let el = document.getElementById('fb-status');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'fb-status';
+      el.style.cssText = 'position:fixed;bottom:12px;left:12px;right:12px;padding:10px 16px;border-radius:10px;font-size:.82rem;font-weight:600;z-index:9999;text-align:center;max-width:500px;margin:0 auto;';
+      document.body.appendChild(el);
+    }
+    el.style.background = ok ? '#dcfce7' : '#fee2e2';
+    el.style.color = ok ? '#16a34a' : '#dc2626';
+    el.style.border = ok ? '1.5px solid #16a34a' : '1.5px solid #dc2626';
+    el.textContent = msg;
+    if (ok) setTimeout(() => { if(el) el.remove(); }, 4000);
+  }
+
   try {
+    showFbStatus('🔌 Connecting to Firebase...', true);
     const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
     const { getDatabase, ref, set, get, onValue, remove } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
     const app = initializeApp(firebaseConfig);
     const db  = getDatabase(app);
+
+    // Test the connection with a quick read
+    const testRef = ref(db, '.info/connected');
+    onValue(testRef, (snap) => {
+      if (snap.val() === true) {
+        window._fbConnected = true;
+        showFbStatus('✅ Firebase connected!', true);
+      }
+    });
+
     window._fb = { db, ref, set, get, onValue, remove };
     window._fbReady = true;
-    console.log("✅ Firebase connected");
+    console.log("✅ Firebase SDK loaded");
   } catch(e) {
-    console.warn("Firebase init failed:", e.message);
     window._fbReady = false;
+    showFbStatus('❌ Firebase error: ' + e.message, false);
+    console.error("Firebase init failed:", e);
   }
 </script>
 
@@ -2040,35 +2070,53 @@ async function showPlayerLobby(gameId) {
   document.getElementById('player-game-id').textContent = `Game ID: ${gameId}`;
 
   const list = document.getElementById('player-lobby-list');
-  list.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px;">Connecting...</p>';
+
+  function setStatus(msg, color) {
+    list.innerHTML = `<p style="color:${color};text-align:center;padding:20px;font-size:.9rem;line-height:1.5;">${msg}</p>`;
+  }
+
+  setStatus('Step 1/3: Loading Firebase SDK...', 'var(--muted)');
 
   try {
     await waitForFb();
   } catch(e) {
-    list.innerHTML = '<p style="color:var(--wrong);text-align:center;padding:20px;">Could not connect to game server. Please check your internet connection and try again.</p>';
+    setStatus('❌ Firebase SDK failed to load.<br>Check your internet connection and reload.', 'var(--wrong)');
     return;
   }
 
-  // Watch live so lobby updates as players join
-  fbWatch(`games/${gameId}`, gameData => {
-    if (!gameData) {
-      list.innerHTML = '<p style="color:var(--wrong);text-align:center;padding:20px;">Game not found. Ask your host for the correct link.</p>';
-      return;
-    }
-    const players = Object.values(gameData.players || {}).sort((a,b) => a.seat - b.seat);
-    STATE.players = players;
-    STATE.gameData = gameData;
+  setStatus('Step 2/3: Connected to Firebase. Loading game data...', 'var(--muted)');
 
-    list.innerHTML = players.map((p, idx) => `
-      <div class="lobby-player-item ${p.joined ? 'taken' : ''}" onclick="joinAsSeat(${idx}, '${gameId}')">
-        <div class="pli-left">
-          <div class="seat-num">${p.seat}</div>
-          <div class="pli-name">${p.name}</div>
+  // Watch live so lobby updates as players join
+  try {
+    fbWatch(`games/${gameId}`, gameData => {
+      if (!gameData) {
+        setStatus('❌ Game not found (ID: ' + gameId + ').<br>Make sure the host has created the lobby first.', 'var(--wrong)');
+        return;
+      }
+
+      const players = Object.values(gameData.players || {}).sort((a,b) => a.seat - b.seat);
+      STATE.players = players;
+      STATE.gameData = gameData;
+
+      if (!players.length) {
+        setStatus('⏳ Game found but no players yet. Waiting...', 'var(--muted)');
+        return;
+      }
+
+      // Step 3: Render player list
+      list.innerHTML = players.map((p, idx) => `
+        <div class="lobby-player-item ${p.joined ? 'taken' : ''}" onclick="joinAsSeat(${idx}, '${gameId}')">
+          <div class="pli-left">
+            <div class="seat-num">${p.seat}</div>
+            <div class="pli-name">${p.name}</div>
+          </div>
+          <div class="tap-join">${p.joined ? 'Joined ✓' : 'Tap to join'}</div>
         </div>
-        <div class="tap-join">${p.joined ? 'Joined ✓' : 'Tap to join'}</div>
-      </div>
-    `).join('');
-  });
+      `).join('');
+    });
+  } catch(e) {
+    setStatus('❌ Error loading game: ' + e.message, 'var(--wrong)');
+  }
 }
 
 async function joinAsSeat(playerIndex, gameId) {
