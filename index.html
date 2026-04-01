@@ -1600,11 +1600,15 @@ function generateSeatOrder() {
     .split('\n').map(n => n.trim()).filter(Boolean);
   if (!names.length) { alert('Please enter at least one player name.'); return; }
 
+  // Read starting coins NOW and store in STATE so everything is consistent
+  STATE.startingCoins = parseInt(document.getElementById('starting-coins').value) || 500;
+  STATE.questionTime  = parseInt(document.getElementById('question-time').value) || 30;
+
   // Shuffle
   const shuffled = [...names].sort(() => Math.random() - .5);
   STATE.players = shuffled.map((name, i) => ({
     name, seat: i + 1,
-    coins: parseInt(document.getElementById('starting-coins').value) || 500,
+    coins: STATE.startingCoins,
     score: 0, won: 0, conv: 0, joined: false
   }));
 
