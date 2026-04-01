@@ -718,7 +718,10 @@ textarea#player-names {
   display: flex; align-items: center; justify-content: center;
 }
 .timer-btn:hover { background: rgba(255,255,255,.35); }
-.timer-running { color: var(--gold) !important; }
+.timer-ready { color: #fff !important; opacity: .6; animation: pulse-opacity 1.2s ease-in-out infinite; }
+.timer-running { color: var(--gold) !important; opacity: 1; animation: none; }
+.timer-done { color: var(--wrong) !important; opacity: 1; }
+@keyframes pulse-opacity { 0%,100%{opacity:.4} 50%{opacity:1} }
 
 .question-body {
   background: var(--surface);
@@ -1292,7 +1295,7 @@ textarea#player-names {
         </div>
         <div class="timer-control">
           <button class="timer-btn" onclick="adjustTimer(-5)">−</button>
-          <span id="timer-display">30s</span>
+          <span id="timer-display" onclick="toggleTimer()" style="cursor:pointer;" title="Click to start/stop timer">30s</span>
           <button class="timer-btn" onclick="adjustTimer(5)">+</button>
         </div>
       </div>
@@ -1737,6 +1740,8 @@ function renderQuestion() {
   document.getElementById('current-tag').style.display = 'none';
   document.getElementById('timer-display').textContent = STATE.timerVal + 's';
   document.getElementById('timer-display').classList.remove('timer-running');
+  document.getElementById('timer-display').classList.add('timer-ready');
+  document.getElementById('timer-display').title = 'Click to start timer';
 
   // Question body
   document.getElementById('q-text').textContent = q.text;
@@ -1750,12 +1755,13 @@ function renderQuestion() {
 
   renderScoreboard();
   renderActions('pre-lock');
-  startTimer();
+  // Timer does NOT auto-start — quizmaster clicks it manually
 }
 
 function startTimer() {
   clearInterval(STATE.timerInterval);
   const disp = document.getElementById('timer-display');
+  disp.classList.remove('timer-ready');
   disp.classList.add('timer-running');
   STATE.timerInterval = setInterval(() => {
     STATE.timerVal--;
@@ -1763,8 +1769,22 @@ function startTimer() {
     if (STATE.timerVal <= 0) {
       clearInterval(STATE.timerInterval);
       disp.classList.remove('timer-running');
+      disp.classList.add('timer-done');
     }
   }, 1000);
+}
+
+function toggleTimer() {
+  // If already running, stop it; if not started, start it
+  if (STATE.timerInterval) {
+    clearInterval(STATE.timerInterval);
+    STATE.timerInterval = null;
+    const disp = document.getElementById('timer-display');
+    disp.classList.remove('timer-running');
+    disp.classList.add('timer-ready');
+  } else {
+    startTimer();
+  }
 }
 
 function adjustTimer(delta) {
@@ -1841,10 +1861,22 @@ function lockBids() {
 
   fbSet(`games/${STATE.gameId}/phase`, 'locked');
 
-  // Build sorted bidder list (desc by bid, tiebreak by seat)
+  // Build sorted bidder list (desc by bid, tiebreak by pre-randomised seat order)
   STATE.sortedBidders = STATE.players
-    .map(p => ({ name: p.name, bid: STATE.bids[p.name] !== undefined ? Number(STATE.bids[p.name]) : 0 }))
-    .sort((a, b) => b.bid - a.bid || (STATE.players.findIndex(p=>p.name===a.name)) - (STATE.players.findIndex(p=>p.name===b.name)));
+    .map(p => ({
+      name: p.name,
+      bid: STATE.bids[sanitizeName(p.name)] !== undefined
+        ? Number(STATE.bids[sanitizeName(p.name)])
+        : (STATE.bids[p.name] !== undefined ? Number(STATE.bids[p.name]) : 0),
+      seatThisQ: p.seatThisQ || p.seat  // randomised seat used as tiebreaker
+    }))
+    .sort((a, b) => b.bid - a.bid || a.seatThisQ - b.seatThisQ);
+
+  // Re-order STATE.players to match bid order for display
+  const bidOrderNames = STATE.sortedBidders.map(b => b.name);
+  STATE.players = [
+    ...STATE.sortedBidders.map(b => STATE.players.find(p => p.name === b.name)),
+  ].filter(Boolean);
 
   STATE.currentBidder = 0;
   const topBid = STATE.sortedBidders[0]?.bid || 0;
@@ -1853,12 +1885,11 @@ function lockBids() {
   document.getElementById('winning-bid-val').textContent = topBid;
 
   if (topBid === 0) {
-    // Nobody bid — find first player in seat order, award 10%
+    // Nobody bid — first player in randomised seat order, award 10%
     const firstPlayer = STATE.players[0];
     const reward = Math.round(STATE.startingCoins * 0.1);
     document.getElementById('no-bid-banner').textContent = `${firstPlayer.name} wins ${reward} coins`;
     document.getElementById('no-bid-banner').classList.add('show');
-    // Award coins
     const pi = STATE.players.findIndex(p => p.name === firstPlayer.name);
     STATE.players[pi].coins += reward;
     STATE.players[pi].score += 1;
@@ -1881,11 +1912,16 @@ function judgeAnswer(correct) {
 
   const pi = STATE.players.findIndex(p => p.name === bidder.name);
   const bid = bidder.bid;
+  const isTopBidder = STATE.currentBidder === 0;
 
   if (correct) {
-    // Half bid deducted, score point, mark won+conv
-    const deduction = Math.floor(bid / 2);
-    STATE.players[pi].coins -= deduction;
+    // ── Fix 4: Top bidder answers correctly → lose only HALF their bid ──
+    // ── Fix 3: Only the top bidder ever loses coins ──
+    if (isTopBidder) {
+      const deduction = Math.floor(bid / 2);
+      STATE.players[pi].coins -= deduction;
+    }
+    // Non-top bidders who answer correctly lose nothing (Fix 3)
     STATE.players[pi].score += 1;
     STATE.players[pi].won += 1;
     STATE.players[pi].conv += 1;
@@ -1893,8 +1929,10 @@ function judgeAnswer(correct) {
     renderScoreboard();
     showAnswer();
   } else {
-    // Full bid deducted
-    STATE.players[pi].coins -= bid;
+    // ── Fix 3: Only top bidder loses coins on a miss ──
+    if (isTopBidder) {
+      STATE.players[pi].coins -= bid;
+    }
     STATE.players[pi].won += 1;
     syncPlayers();
 
