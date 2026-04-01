@@ -1885,17 +1885,16 @@ function lockBids() {
   document.getElementById('winning-bid-val').textContent = topBid;
 
   if (topBid === 0) {
-    // Nobody bid — first player in randomised seat order, award 10%
-    const firstPlayer = STATE.players[0];
+    // Nobody bid — still play the question, first player in random order gets to answer
+    const firstPlayer = STATE.sortedBidders[0];
     const reward = Math.round(STATE.startingCoins * 0.1);
-    document.getElementById('no-bid-banner').textContent = `${firstPlayer.name} wins ${reward} coins`;
+    document.getElementById('no-bid-banner').textContent =
+      `No bids — ${firstPlayer.name} answers first. Correct = +${reward} coins`;
     document.getElementById('no-bid-banner').classList.add('show');
-    const pi = STATE.players.findIndex(p => p.name === firstPlayer.name);
-    STATE.players[pi].coins += reward;
-    STATE.players[pi].score += 1;
-    syncPlayers();
+    document.getElementById('current-tag').textContent = `Current: ${firstPlayer.name}`;
+    document.getElementById('current-tag').style.display = 'inline-block';
     renderScoreboard();
-    renderActions('show-answer');
+    renderActions('judge');
   } else {
     // Show current top bidder
     document.getElementById('current-tag').textContent = `Current: ${STATE.sortedBidders[0].name}`;
@@ -1914,14 +1913,19 @@ function judgeAnswer(correct) {
   const bid = bidder.bid;
   const isTopBidder = STATE.currentBidder === 0;
 
+  const isNoBidRound = STATE.sortedBidders.every(b => b.bid === 0);
+  const reward = Math.round(STATE.startingCoins * 0.1);
+
   if (correct) {
-    // ── Fix 4: Top bidder answers correctly → lose only HALF their bid ──
-    // ── Fix 3: Only the top bidder ever loses coins ──
-    if (isTopBidder) {
+    if (isNoBidRound) {
+      // No-bid round: correct answer earns 10% of starting coins, no deduction
+      STATE.players[pi].coins += reward;
+    } else if (isTopBidder) {
+      // Top bidder correct: lose only half their bid
       const deduction = Math.floor(bid / 2);
       STATE.players[pi].coins -= deduction;
     }
-    // Non-top bidders who answer correctly lose nothing (Fix 3)
+    // Non-top bidders correct: no coin change
     STATE.players[pi].score += 1;
     STATE.players[pi].won += 1;
     STATE.players[pi].conv += 1;
@@ -1929,23 +1933,27 @@ function judgeAnswer(correct) {
     renderScoreboard();
     showAnswer();
   } else {
-    // ── Fix 3: Only top bidder loses coins on a miss ──
-    if (isTopBidder) {
+    // On a miss: only top bidder (non-zero bid) loses coins
+    if (isTopBidder && !isNoBidRound) {
       STATE.players[pi].coins -= bid;
     }
+    // No-bid round miss: nobody loses anything, just pass to next
     STATE.players[pi].won += 1;
     syncPlayers();
 
-    // Move to next bidder
+    // Move to next player
     STATE.currentBidder++;
     const next = STATE.sortedBidders[STATE.currentBidder];
 
-    if (!next || next.bid === 0) {
-      // No more meaningful bidders — show answer
+    if (!next) {
+      // All players have had a go — show answer
       renderScoreboard();
       renderActions('show-answer');
     } else {
       document.getElementById('current-tag').textContent = `Current: ${next.name}`;
+      document.getElementById('no-bid-banner').textContent = isNoBidRound
+        ? `No bids — ${next.name} answers next. Correct = +${reward} coins`
+        : '';
       renderScoreboard();
       renderActions('judge');
     }
