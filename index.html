@@ -718,10 +718,9 @@ textarea#player-names {
   display: flex; align-items: center; justify-content: center;
 }
 .timer-btn:hover { background: rgba(255,255,255,.35); }
-.timer-ready { color: #fff !important; opacity: .6; animation: pulse-opacity 1.2s ease-in-out infinite; }
-.timer-running { color: var(--gold) !important; opacity: 1; animation: none; }
-.timer-done { color: var(--wrong) !important; opacity: 1; }
-@keyframes pulse-opacity { 0%,100%{opacity:.4} 50%{opacity:1} }
+.timer-ready { color: #fff !important; opacity: .5; }
+.timer-running { color: #fff !important; opacity: 1; }
+.timer-done { color: #fff !important; opacity: 1; }
 
 .question-body {
   background: var(--surface);
@@ -1313,7 +1312,7 @@ textarea#player-names {
 
       <div class="lock-bids-row">
         <button class="btn btn-gold btn-lg" style="flex:1" id="lock-bids-btn" onclick="lockBids()">
-          🔒 Lock Bids
+          👁 Reveal Bids
         </button>
         <button class="btn btn-ghost" style="padding:12px 14px;" onclick="undoAction()" title="Undo">↩</button>
       </div>
@@ -1473,13 +1472,21 @@ textarea#player-names {
   </div>
 </div>
 
-<!-- Edit Bid Modal -->
+<!-- Edit Player Modal -->
 <div class="modal-overlay" id="edit-modal">
   <div class="edit-modal-box">
-    <h3>Edit Bid for <span id="edit-player-name"></span></h3>
-    <div style="margin-bottom:16px;">
+    <h3>Edit — <span id="edit-player-name"></span></h3>
+    <div style="margin-bottom:14px;">
       <label>Bid Amount</label>
       <input type="number" id="edit-bid-input" value="0" min="0"/>
+    </div>
+    <div style="margin-bottom:14px;">
+      <label>Coins</label>
+      <input type="number" id="edit-coins-input" value="0" min="0"/>
+    </div>
+    <div style="margin-bottom:20px;">
+      <label>Score (points)</label>
+      <input type="number" id="edit-score-input" value="0" min="0"/>
     </div>
     <div style="display:flex;gap:10px;">
       <button class="btn btn-ghost btn-lg" style="flex:1" onclick="closeModal('edit-modal')">Cancel</button>
@@ -1958,8 +1965,9 @@ function renderScoreboard() {
       ? STATE.bids[sanitizeName(p.name)]
       : STATE.bids[p.name];
 
+    // Always show ? until quizmaster clicks Reveal Bids — even if player has submitted
     const bidDisplay = !STATE.bidsLocked
-      ? (bidVal !== undefined ? `<span class="bid-cell">${bidVal}</span>` : '<span class="bid-unknown">?</span>')
+      ? '<span class="bid-unknown">?</span>'
       : `<span class="bid-cell">${bidVal !== undefined ? bidVal : 0}</span>`;
 
     const isCurrent = STATE.bidsLocked && STATE.sortedBidders.length > 0 &&
@@ -2199,19 +2207,43 @@ async function syncPlayers() {
   await fbSet(`games/${STATE.gameId}/players`, playersObj).catch(()=>{});
 }
 
-/* Edit bid modal */
+/* Edit player modal */
 let editingPlayer = null;
 function openEditModal(playerName) {
   editingPlayer = playerName;
   document.getElementById('edit-player-name').textContent = playerName;
-  const currentBid = STATE.bids[playerName] !== undefined ? STATE.bids[playerName] : 0;
+
+  const safeName = sanitizeName(playerName);
+  const currentBid = STATE.bids[safeName] !== undefined
+    ? STATE.bids[safeName]
+    : (STATE.bids[playerName] !== undefined ? STATE.bids[playerName] : 0);
   document.getElementById('edit-bid-input').value = currentBid;
+
+  const player = STATE.players.find(p => p.name === playerName);
+  document.getElementById('edit-coins-input').value = player ? player.coins : 0;
+  document.getElementById('edit-score-input').value = player ? player.score : 0;
+
   document.getElementById('edit-modal').classList.add('active');
 }
 function saveEditedBid() {
-  const val = parseInt(document.getElementById('edit-bid-input').value) || 0;
-  STATE.bids[editingPlayer] = val;
-  fbSet(`games/${STATE.gameId}/bids/${editingPlayer}`, val);
+  const newBid   = parseInt(document.getElementById('edit-bid-input').value)  || 0;
+  const newCoins = parseInt(document.getElementById('edit-coins-input').value) || 0;
+  const newScore = parseInt(document.getElementById('edit-score-input').value) || 0;
+
+  const safeName = sanitizeName(editingPlayer);
+
+  // Update bid
+  STATE.bids[safeName] = newBid;
+  fbSet(`games/${STATE.gameId}/bids/${safeName}`, newBid).catch(()=>{});
+
+  // Update player coins and score
+  const pi = STATE.players.findIndex(p => p.name === editingPlayer);
+  if (pi > -1) {
+    STATE.players[pi].coins = newCoins;
+    STATE.players[pi].score = newScore;
+    syncPlayers();
+  }
+
   closeModal('edit-modal');
   updateScoreboardBids();
 }
