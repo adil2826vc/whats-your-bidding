@@ -1179,13 +1179,7 @@ textarea#player-names {
             <input type="number" id="question-time" value="30" min="10" step="5"/>
           </div>
         </div>
-        <button class="btn btn-gold btn-lg" onclick="generateSeatOrder()">
-          ⇄ Generate Seat Order
-        </button>
-        <div id="seat-preview" style="display:none;">
-          <label style="margin-bottom:8px;">Seat Order (randomised)</label>
-          <div id="seat-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-        </div>
+        <!-- Seat order is randomised automatically at the start of each question -->
       </div>
 
       <div class="rules-box">
@@ -1451,6 +1445,7 @@ const STATE = {
   bids: {},              // {playerName: amount}
   currentBidder: null,   // index into sorted bidders
   sortedBidders: [],     // [{name, bid}] sorted desc
+  displayOrder: [],      // frozen display order after lock bids
   history: [],           // undo stack of snapshots
   timerVal: 30,
   timerInterval: null,
@@ -1595,39 +1590,28 @@ function goToSetup() {
 /* ═══════════════════════════════════════════════════════════
    SCREEN 2 — SETUP
 ═══════════════════════════════════════════════════════════ */
-function generateSeatOrder() {
+function buildPlayerList() {
   const names = document.getElementById('player-names').value
     .split('\n').map(n => n.trim()).filter(Boolean);
-  if (!names.length) { alert('Please enter at least one player name.'); return; }
+  if (!names.length) { alert('Please enter at least one player name.'); return false; }
 
-  // Read starting coins NOW and store in STATE so everything is consistent
+  // Store settings in STATE so everything is consistent
   STATE.startingCoins = parseInt(document.getElementById('starting-coins').value) || 500;
   STATE.questionTime  = parseInt(document.getElementById('question-time').value) || 30;
 
-  // Shuffle
-  const shuffled = [...names].sort(() => Math.random() - .5);
-  STATE.players = shuffled.map((name, i) => ({
+  // No shuffle here — seats are randomised fresh at the start of every question
+  STATE.players = names.map((name, i) => ({
     name, seat: i + 1,
     coins: STATE.startingCoins,
     score: 0, won: 0, conv: 0, joined: false
   }));
 
-  const preview = document.getElementById('seat-preview');
-  const list    = document.getElementById('seat-list');
-  preview.style.display = 'block';
-  list.innerHTML = STATE.players.map(p => `
-    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;">
-      <span style="background:var(--blue);color:#fff;border-radius:6px;padding:2px 10px;font-weight:700;font-size:.82rem;">Seat ${p.seat}</span>
-      <span style="font-weight:600;">${p.name}</span>
-    </div>
-  `).join('');
+  return true;
 }
 
 function goToLobby() {
-  if (!STATE.players.length) { alert('Please generate seat order first.'); return; }
-  STATE.startingCoins = parseInt(document.getElementById('starting-coins').value) || 500;
-  STATE.questionTime  = parseInt(document.getElementById('question-time').value) || 30;
-  STATE.timerVal      = STATE.questionTime;
+  if (!buildPlayerList()) return;  // reads names, coins, time into STATE
+  STATE.timerVal = STATE.questionTime;
 
   // Generate game ID
   STATE.gameId = (typeof crypto !== 'undefined' && crypto.randomUUID)
@@ -1721,6 +1705,7 @@ function renderQuestion() {
   STATE.bidsLocked = false;
   STATE.currentBidder = 0;
   STATE.sortedBidders = [];
+  STATE.displayOrder = [];  // reset — will be set at lock time
   STATE.timerVal = STATE.questionTime;
   clearInterval(STATE.timerInterval);
 
@@ -1798,8 +1783,17 @@ function adjustTimer(delta) {
 
 function renderScoreboard() {
   const table = document.getElementById('scoreboard');
-  const rows = STATE.players.map((p, i) => {
-    const bidVal = STATE.bids[sanitizeName(p.name)] !== undefined ? STATE.bids[sanitizeName(p.name)] : STATE.bids[p.name];
+
+  // Use frozen display order after lock — so the table never jumps mid-question
+  const displayList = (STATE.bidsLocked && STATE.displayOrder.length)
+    ? STATE.displayOrder.map(d => STATE.players.find(p => p.name === d.name) || d)
+    : STATE.players;
+
+  const rows = displayList.map((p, i) => {
+    const bidVal = STATE.bids[sanitizeName(p.name)] !== undefined
+      ? STATE.bids[sanitizeName(p.name)]
+      : STATE.bids[p.name];
+
     const bidDisplay = !STATE.bidsLocked
       ? (bidVal !== undefined ? `<span class="bid-cell">${bidVal}</span>` : '<span class="bid-unknown">?</span>')
       : `<span class="bid-cell">${bidVal !== undefined ? bidVal : 0}</span>`;
@@ -1876,11 +1870,10 @@ function lockBids() {
     }))
     .sort((a, b) => b.bid - a.bid || a.seatThisQ - b.seatThisQ);
 
-  // Re-order STATE.players to match bid order for display
-  const bidOrderNames = STATE.sortedBidders.map(b => b.name);
-  STATE.players = [
-    ...STATE.sortedBidders.map(b => STATE.players.find(p => p.name === b.name)),
-  ].filter(Boolean);
+  // Freeze display order at lock time — never changes again this question
+  STATE.displayOrder = STATE.sortedBidders
+    .map(b => STATE.players.find(p => p.name === b.name))
+    .filter(Boolean);
 
   STATE.currentBidder = 0;
   const topBid = STATE.sortedBidders[0]?.bid || 0;
@@ -1993,6 +1986,7 @@ function saveSnapshot() {
     bidsLocked: STATE.bidsLocked,
     currentBidder: STATE.currentBidder,
     sortedBidders: [...STATE.sortedBidders],
+    displayOrder: [...STATE.displayOrder],
     answerShown: document.getElementById('answer-reveal').classList.contains('show'),
     winningBidShown: document.getElementById('winning-bid-banner').style.display !== 'none',
   });
@@ -2004,6 +1998,7 @@ function restoreSnapshot(snap) {
   STATE.bidsLocked = snap.bidsLocked;
   STATE.currentBidder = snap.currentBidder;
   STATE.sortedBidders = snap.sortedBidders;
+  STATE.displayOrder = snap.displayOrder || [];
 
   if (!snap.answerShown) document.getElementById('answer-reveal').classList.remove('show');
   if (!snap.winningBidShown) document.getElementById('winning-bid-banner').style.display = 'none';
