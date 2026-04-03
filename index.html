@@ -551,6 +551,8 @@ textarea#player-names {
   gap: 0;
   flex: 1;
   min-height: 0;
+  height: calc(100vh - 61px);  /* subtract topbar height */
+  overflow: hidden;
 }
 
 /* LEFT PANEL */
@@ -562,6 +564,7 @@ textarea#player-names {
   padding: 20px;
   gap: 16px;
   overflow-y: auto;
+  height: 100%;
 }
 
 .scoreboard-table {
@@ -665,8 +668,9 @@ textarea#player-names {
   display: flex;
   flex-direction: column;
   padding: 24px;
-  gap: 20px;
+  gap: 16px;
   overflow-y: auto;
+  height: 100%;
 }
 
 .question-header {
@@ -726,20 +730,27 @@ textarea#player-names {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 32px 36px;
+  padding: 28px 32px;
   font-size: 1.35rem;
   line-height: 1.75;
   color: var(--text);
   flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .question-image {
-  max-width: 100%;
-  max-height: 400px;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  max-height: 45vh;
   border-radius: 12px;
   border: 2px solid var(--border);
   object-fit: contain;
-  margin-top: 24px;
+  object-position: center;
+  margin-top: 16px;
   display: block;
 }
 
@@ -1166,7 +1177,12 @@ textarea#player-names {
 <div id="screen-upload" class="screen active">
   <div class="upload-card card">
     <div class="upload-logo">
-      <div class="logo-icon">?</div>
+      <div style="background:#fff;border-radius:12px;padding:8px 14px;display:inline-flex;align-items:center;gap:10px;box-shadow:0 2px 6px rgba(0,0,0,0.12);"><svg width="40" height="40" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="50,2 93,26 93,74 50,98 7,74 7,26" fill="#2a2a3a"/>
+            <polygon points="50,2 93,26 93,74 50,98 7,74 7,26" fill="none" stroke="#4a6cf7" stroke-width="3"/>
+            <polyline points="28,70 28,30 50,58 72,30 72,70" fill="none" stroke="#4a6cf7" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="28,70 28,30 50,58 72,30 72,70" fill="none" stroke="#6a8fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg><span style="font-family:'Aptos','Segoe UI',sans-serif;font-weight:900;font-size:1.4rem;color:#2a2a3a;letter-spacing:2.5px;">NEXUS</span></div>
       <div>
         <div class="brand-name">Lock In</div>
         <div class="brand-sub">The quiz where knowledge meets strategy</div>
@@ -1199,7 +1215,12 @@ textarea#player-names {
   <div class="setup-card card">
     <div class="setup-header">
       <div class="logo-mark">
-        <div class="logo-icon" style="width:40px;height:40px;font-size:1.2rem;">?</div>
+        <div style="background:#fff;border-radius:8px;padding:5px 10px;display:inline-flex;align-items:center;gap:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12);"><svg width="28" height="28" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="50,2 93,26 93,74 50,98 7,74 7,26" fill="#2a2a3a"/>
+            <polygon points="50,2 93,26 93,74 50,98 7,74 7,26" fill="none" stroke="#4a6cf7" stroke-width="3"/>
+            <polyline points="28,70 28,30 50,58 72,30 72,70" fill="none" stroke="#4a6cf7" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="28,70 28,30 50,58 72,30 72,70" fill="none" stroke="#6a8fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg><span style="font-family:'Aptos','Segoe UI',sans-serif;font-weight:900;font-size:1rem;color:#2a2a3a;letter-spacing:2.5px;">NEXUS</span></div>
         <div>
           <h1>Game Setup</h1>
           <p>Configure your quiz session</p>
@@ -1257,7 +1278,12 @@ textarea#player-names {
   <div class="lobby-card card">
     <div class="lobby-header">
       <div class="logo-mark">
-        <div class="logo-icon" style="width:40px;height:40px;font-size:1.2rem;">?</div>
+        <div style="background:#fff;border-radius:8px;padding:5px 10px;display:inline-flex;align-items:center;gap:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12);"><svg width="28" height="28" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="50,2 93,26 93,74 50,98 7,74 7,26" fill="#2a2a3a"/>
+            <polygon points="50,2 93,26 93,74 50,98 7,74 7,26" fill="none" stroke="#4a6cf7" stroke-width="3"/>
+            <polyline points="28,70 28,30 50,58 72,30 72,70" fill="none" stroke="#4a6cf7" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="28,70 28,30 50,58 72,30 72,70" fill="none" stroke="#6a8fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg><span style="font-family:'Aptos','Segoe UI',sans-serif;font-weight:900;font-size:1rem;color:#2a2a3a;letter-spacing:2.5px;">NEXUS</span></div>
         <div>
           <h1>Game Lobby</h1>
           <p>Share the link so players can join</p>
@@ -1299,7 +1325,12 @@ textarea#player-names {
 <div id="screen-game" class="screen">
   <div class="game-topbar">
     <div class="logo-mark">
-      <div class="logo-icon" style="width:36px;height:36px;font-size:1.1rem;border-radius:10px;">?</div>
+      <div style="background:#fff;border-radius:7px;padding:4px 10px;display:inline-flex;align-items:center;gap:7px;box-shadow:0 2px 6px rgba(0,0,0,0.12);"><svg width="24" height="24" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="50,2 93,26 93,74 50,98 7,74 7,26" fill="#2a2a3a"/>
+            <polygon points="50,2 93,26 93,74 50,98 7,74 7,26" fill="none" stroke="#4a6cf7" stroke-width="3"/>
+            <polyline points="28,70 28,30 50,58 72,30 72,70" fill="none" stroke="#4a6cf7" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="28,70 28,30 50,58 72,30 72,70" fill="none" stroke="#6a8fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg><span style="font-family:'Aptos','Segoe UI',sans-serif;font-weight:900;font-size:.85rem;color:#2a2a3a;letter-spacing:2.5px;">NEXUS</span></div>
       <div class="logo-text">Lock In <span>Quizmaster View</span></div>
     </div>
     <button class="btn btn-ghost" style="font-size:.82rem;padding:8px 14px;" onclick="reloadTSV()">↺ Reload TSV</button>
@@ -1406,7 +1437,12 @@ textarea#player-names {
 <div id="player-lobby" class="player-screen">
   <div class="player-card card">
     <div class="player-card-header">
-      <div class="logo-icon">?</div>
+      <div style="background:#fff;border-radius:10px;padding:6px 12px;display:inline-flex;align-items:center;gap:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12);"><svg width="32" height="32" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="50,2 93,26 93,74 50,98 7,74 7,26" fill="#2a2a3a"/>
+            <polygon points="50,2 93,26 93,74 50,98 7,74 7,26" fill="none" stroke="#4a6cf7" stroke-width="3"/>
+            <polyline points="28,70 28,30 50,58 72,30 72,70" fill="none" stroke="#4a6cf7" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="28,70 28,30 50,58 72,30 72,70" fill="none" stroke="#6a8fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg><span style="font-family:'Aptos','Segoe UI',sans-serif;font-weight:900;font-size:1.1rem;color:#2a2a3a;letter-spacing:2.5px;">NEXUS</span></div>
       <h2>Game Lobby</h2>
       <p>Click on your name to join the game</p>
     </div>
@@ -1421,7 +1457,12 @@ textarea#player-names {
     <button class="all-in-btn" onclick="allIn()" id="all-in-btn">All In</button>
 
     <div class="player-card-header">
-      <div class="logo-icon">?</div>
+      <div style="background:#fff;border-radius:10px;padding:6px 12px;display:inline-flex;align-items:center;gap:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12);"><svg width="32" height="32" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="50,2 93,26 93,74 50,98 7,74 7,26" fill="#2a2a3a"/>
+            <polygon points="50,2 93,26 93,74 50,98 7,74 7,26" fill="none" stroke="#4a6cf7" stroke-width="3"/>
+            <polyline points="28,70 28,30 50,58 72,30 72,70" fill="none" stroke="#4a6cf7" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="28,70 28,30 50,58 72,30 72,70" fill="none" stroke="#6a8fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg><span style="font-family:'Aptos','Segoe UI',sans-serif;font-weight:900;font-size:1.1rem;color:#2a2a3a;letter-spacing:2.5px;">NEXUS</span></div>
       <h2>Lock In</h2>
     </div>
 
