@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>What's Your Bidding</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<title>Lock In</title>
+<!-- Using system fonts: Aptos and Century Schoolbook -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- Firebase -->
 <script type="module">
@@ -92,7 +92,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Aptos', 'Segoe UI', 'Helvetica Neue', sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -156,7 +156,7 @@ body::after {
   flex-shrink: 0;
 }
 .logo-text {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Century Schoolbook', 'Century', 'Georgia', serif;
   font-size: 1.3rem;
   font-weight: 700;
   color: var(--blue);
@@ -168,7 +168,7 @@ body::after {
   font-style: italic;
   color: var(--muted);
   font-weight: 600;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Aptos', 'Segoe UI', 'Helvetica Neue', sans-serif;
 }
 
 .card {
@@ -185,7 +185,7 @@ body::after {
   gap: 8px;
   padding: 12px 24px;
   border-radius: 10px;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Aptos', 'Segoe UI', 'Helvetica Neue', sans-serif;
   font-weight: 600;
   font-size: .95rem;
   cursor: pointer;
@@ -214,7 +214,7 @@ input[type=text], input[type=number], textarea {
   border: 1.5px solid var(--border);
   border-radius: 10px;
   padding: 12px 16px;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Aptos', 'Segoe UI', 'Helvetica Neue', sans-serif;
   font-size: .95rem;
   color: var(--text);
   transition: border-color .15s, box-shadow .15s;
@@ -264,7 +264,7 @@ label {
   border-radius: 18px;
 }
 .upload-logo .brand-name {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Century Schoolbook', 'Century', 'Georgia', serif;
   font-size: 2rem;
   font-weight: 700;
   color: var(--blue);
@@ -346,7 +346,7 @@ label {
   border-bottom: 1px solid var(--border);
 }
 .setup-header h1 {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Century Schoolbook', 'Century', 'Georgia', serif;
   font-size: 1.9rem;
   font-weight: 700;
   color: var(--blue);
@@ -370,7 +370,7 @@ label {
   color: #fff;
 }
 .rules-box h3 {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Century Schoolbook', 'Century', 'Georgia', serif;
   font-size: 1.2rem;
   font-weight: 700;
   margin-bottom: 16px;
@@ -401,7 +401,7 @@ label {
 textarea#player-names {
   min-height: 160px;
   resize: vertical;
-  font-family: 'Outfit', monospace;
+  font-family: 'Aptos', 'Segoe UI', monospace;
   font-size: .9rem;
 }
 
@@ -437,7 +437,7 @@ textarea#player-names {
   border-bottom: 1px solid var(--border);
 }
 .lobby-header h1 {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Century Schoolbook', 'Century', 'Georgia', serif;
   font-size: 1.7rem;
   font-weight: 700;
   color: var(--blue);
@@ -451,7 +451,7 @@ textarea#player-names {
   margin-bottom: 28px;
 }
 .qr-wrap h2 {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Century Schoolbook', 'Century', 'Georgia', serif;
   font-size: 1.4rem;
   color: var(--blue);
 }
@@ -679,7 +679,7 @@ textarea#player-names {
 }
 .question-header h2 {
   color: #fff;
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   font-weight: 700;
 }
 .current-tag {
@@ -726,20 +726,20 @@ textarea#player-names {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 28px;
-  font-size: 1.05rem;
-  line-height: 1.7;
+  padding: 32px 36px;
+  font-size: 1.35rem;
+  line-height: 1.75;
   color: var(--text);
   flex: 1;
 }
 
 .question-image {
-  max-width: 320px;
-  max-height: 240px;
-  border-radius: 10px;
+  max-width: 100%;
+  max-height: 400px;
+  border-radius: 12px;
   border: 2px solid var(--border);
   object-fit: contain;
-  margin-top: 20px;
+  margin-top: 24px;
   display: block;
 }
 
@@ -769,7 +769,7 @@ textarea#player-names {
   gap: 8px;
   padding: 10px 18px;
   border-radius: 10px;
-  font-family: "Outfit", sans-serif;
+  font-family: 'Aptos', 'Segoe UI', 'Helvetica Neue', sans-serif;
   font-weight: 600;
   font-size: .88rem;
   cursor: pointer;
@@ -847,7 +847,7 @@ textarea#player-names {
   animation: bounceIn .6s cubic-bezier(.34,1.56,.64,1);
 }
 .results-card h1 {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Century Schoolbook', 'Century', 'Georgia', serif;
   font-size: 2.4rem;
   font-weight: 700;
   color: var(--blue);
@@ -869,7 +869,7 @@ textarea#player-names {
 }
 .final-scores-header h3 {
   color: var(--gold);
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Century Schoolbook', 'Century', 'Georgia', serif;
   font-size: 1.2rem;
 }
 
@@ -938,7 +938,7 @@ textarea#player-names {
   margin: 0 auto 12px;
 }
 .player-card-header h2 {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Century Schoolbook', 'Century', 'Georgia', serif;
   font-size: 1.6rem;
   font-weight: 700;
   color: var(--blue);
@@ -1095,7 +1095,7 @@ textarea#player-names {
   animation: popIn .25s cubic-bezier(.34,1.56,.64,1);
 }
 .modal-box h3 {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Century Schoolbook', 'Century', 'Georgia', serif;
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--blue);
@@ -1123,7 +1123,7 @@ textarea#player-names {
   animation: popIn .25s cubic-bezier(.34,1.56,.64,1);
 }
 .edit-modal-box h3 {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Century Schoolbook', 'Century', 'Georgia', serif;
   font-size: 1.3rem;
   color: var(--blue);
   margin-bottom: 16px;
@@ -1168,7 +1168,7 @@ textarea#player-names {
     <div class="upload-logo">
       <div class="logo-icon">?</div>
       <div>
-        <div class="brand-name">What's Your Bidding</div>
+        <div class="brand-name">Lock In</div>
         <div class="brand-sub">The quiz where knowledge meets strategy</div>
       </div>
     </div>
@@ -1300,7 +1300,7 @@ textarea#player-names {
   <div class="game-topbar">
     <div class="logo-mark">
       <div class="logo-icon" style="width:36px;height:36px;font-size:1.1rem;border-radius:10px;">?</div>
-      <div class="logo-text">What's Your Bidding <span>Quizmaster View</span></div>
+      <div class="logo-text">Lock In <span>Quizmaster View</span></div>
     </div>
     <button class="btn btn-ghost" style="font-size:.82rem;padding:8px 14px;" onclick="reloadTSV()">↺ Reload TSV</button>
   </div>
@@ -1422,7 +1422,7 @@ textarea#player-names {
 
     <div class="player-card-header">
       <div class="logo-icon">?</div>
-      <h2>What's Your Bidding</h2>
+      <h2>Lock In</h2>
     </div>
 
     <div class="player-name-display">
