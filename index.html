@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Lock In</title>
-<!-- Using system fonts: Aptos and Century Schoolbook -->
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- Firebase -->
 <script type="module">
@@ -156,7 +156,7 @@ body::after {
   flex-shrink: 0;
 }
 .logo-text {
-  font-family: 'Century Schoolbook', 'Century', 'Georgia', serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 1.3rem;
   font-weight: 700;
   color: var(--blue);
@@ -201,6 +201,8 @@ body::after {
 .btn-outline:hover:not(:disabled)   { border-color: var(--blue); background: var(--blue-pale); }
 .btn-ghost     { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
 .btn-ghost:hover:not(:disabled)     { background: var(--bg2); color: var(--text); }
+.btn-nobid     { background: var(--surface); color: var(--text); border: 2px solid var(--blue); }
+.btn-nobid:hover:not(:disabled)     { background: var(--blue-pale); color: var(--blue); border-color: var(--blue2); }
 .btn-correct   { background: var(--correct); color: #fff; box-shadow: 0 4px 14px rgba(22,163,74,.25); }
 .btn-correct:hover:not(:disabled)   { background: #15803d; transform: translateY(-2px); }
 .btn-wrong     { background: var(--wrong); color: #fff; box-shadow: 0 4px 14px rgba(220,38,38,.25); }
@@ -264,7 +266,7 @@ label {
   border-radius: 18px;
 }
 .upload-logo .brand-name {
-  font-family: 'Century Schoolbook', 'Century', 'Georgia', serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 2rem;
   font-weight: 700;
   color: var(--blue);
@@ -346,7 +348,7 @@ label {
   border-bottom: 1px solid var(--border);
 }
 .setup-header h1 {
-  font-family: 'Century Schoolbook', 'Century', 'Georgia', serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 1.9rem;
   font-weight: 700;
   color: var(--blue);
@@ -370,11 +372,12 @@ label {
   color: #fff;
 }
 .rules-box h3 {
-  font-family: 'Century Schoolbook', 'Century', 'Georgia', serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 1.2rem;
   font-weight: 700;
   margin-bottom: 16px;
-  color: var(--gold);
+  color: #ffffff;
+  opacity: 1;
 }
 .rules-box ul {
   list-style: none;
@@ -437,7 +440,7 @@ textarea#player-names {
   border-bottom: 1px solid var(--border);
 }
 .lobby-header h1 {
-  font-family: 'Century Schoolbook', 'Century', 'Georgia', serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 1.7rem;
   font-weight: 700;
   color: var(--blue);
@@ -451,7 +454,7 @@ textarea#player-names {
   margin-bottom: 28px;
 }
 .qr-wrap h2 {
-  font-family: 'Century Schoolbook', 'Century', 'Georgia', serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 1.4rem;
   color: var(--blue);
 }
@@ -739,6 +742,11 @@ textarea#player-names {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+}
+
+#q-text {
+  text-align: center;
 }
 
 /* Split layout when media is present */
@@ -882,7 +890,7 @@ textarea#player-names {
   animation: bounceIn .6s cubic-bezier(.34,1.56,.64,1);
 }
 .results-card h1 {
-  font-family: 'Century Schoolbook', 'Century', 'Georgia', serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 2.4rem;
   font-weight: 700;
   color: var(--blue);
@@ -904,7 +912,7 @@ textarea#player-names {
 }
 .final-scores-header h3 {
   color: var(--gold);
-  font-family: 'Century Schoolbook', 'Century', 'Georgia', serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 1.2rem;
 }
 
@@ -973,7 +981,7 @@ textarea#player-names {
   margin: 0 auto 12px;
 }
 .player-card-header h2 {
-  font-family: 'Century Schoolbook', 'Century', 'Georgia', serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 1.6rem;
   font-weight: 700;
   color: var(--blue);
@@ -1130,7 +1138,7 @@ textarea#player-names {
   animation: popIn .25s cubic-bezier(.34,1.56,.64,1);
 }
 .modal-box h3 {
-  font-family: 'Century Schoolbook', 'Century', 'Georgia', serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--blue);
@@ -1158,7 +1166,7 @@ textarea#player-names {
   animation: popIn .25s cubic-bezier(.34,1.56,.64,1);
 }
 .edit-modal-box h3 {
-  font-family: 'Century Schoolbook', 'Century', 'Georgia', serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 1.3rem;
   color: var(--blue);
   margin-bottom: 16px;
@@ -1482,7 +1490,7 @@ textarea#player-names {
         <input type="number" id="p-bid-input" value="0" min="0" placeholder="0"/>
       </div>
       <div class="bid-btns">
-        <button class="btn btn-ghost btn-lg" onclick="submitNoBid()">No Bid</button>
+        <button class="btn btn-nobid btn-lg" onclick="submitNoBid()">No Bid</button>
         <button class="btn btn-primary btn-lg" onclick="sendBid()">Send Bid</button>
       </div>
     </div>
