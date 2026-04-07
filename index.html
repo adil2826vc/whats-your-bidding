@@ -734,8 +734,8 @@ textarea#player-names {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 28px 32px;
-  font-size: 1.35rem;
-  line-height: 1.75;
+  font-size: 1.55rem;
+  line-height: 1.8;
   color: var(--text);
   flex: 1;
   min-height: 0;
@@ -753,7 +753,7 @@ textarea#player-names {
 .question-body.has-media {
   flex-direction: row;
   gap: 24px;
-  align-items: flex-start;
+  align-items: stretch;   /* fix 1: was flex-start, now stretch so both panels fill height */
   overflow-y: hidden;
 }
 .question-body.has-media .q-text-wrap {
@@ -763,8 +763,13 @@ textarea#player-names {
   max-height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: center;  /* vertically centre text */
+  align-items: center;      /* horizontally centre text block */
   text-align: center;
+}
+.question-body.has-media .q-text-wrap #q-text {
+  text-align: center;       /* ensure text itself is centred */
+  width: 100%;
 }
 .question-body.has-media .q-media-wrap {
   flex: 1;
@@ -773,8 +778,9 @@ textarea#player-names {
   flex-direction: column;
   gap: 10px;
   max-height: 100%;
-  align-items: center;
-  justify-content: center;
+  align-items: center;      /* centre image/buttons horizontally */
+  justify-content: center;  /* centre vertically */
+  overflow-y: auto;
 }
 
 .question-image {
@@ -843,7 +849,7 @@ textarea#player-names {
 .media-embed.show { display: block; }
 .media-embed iframe {
   width: 100%;
-  height: 420px;
+  height: 340px;
   border: none;
   display: block;
 }
