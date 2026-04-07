@@ -761,6 +761,10 @@ textarea#player-names {
   min-width: 0;
   overflow-y: auto;
   max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
 }
 .question-body.has-media .q-media-wrap {
   flex: 1;
@@ -769,6 +773,8 @@ textarea#player-names {
   flex-direction: column;
   gap: 10px;
   max-height: 100%;
+  align-items: center;
+  justify-content: center;
 }
 
 .question-image {
@@ -779,6 +785,7 @@ textarea#player-names {
   object-fit: contain;
   object-position: center;
   display: block;
+  margin: 0 auto;
 }
 /* No-media image stacks below text as before */
 .question-body:not(.has-media) .question-image {
@@ -805,6 +812,7 @@ textarea#player-names {
   gap: 10px;
   margin-top: 16px;
   flex-wrap: wrap;
+  justify-content: center;
 }
 .media-btn {
   display: inline-flex;
@@ -830,11 +838,12 @@ textarea#player-names {
   border: 2px solid var(--border);
   display: none;
   animation: fadeUp .25s ease;
+  width: 100%;
 }
 .media-embed.show { display: block; }
 .media-embed iframe {
   width: 100%;
-  height: 280px;
+  height: 420px;
   border: none;
   display: block;
 }
@@ -1842,7 +1851,22 @@ function renderQuestion() {
   document.getElementById('timer-display').title = 'Click to start timer';
 
   // Question body
-  document.getElementById('q-text').textContent = q.text;
+  // Render bold <b>...</b> and italic <i>...</i> tags from TSV
+  function renderQuestionText(text) {
+    // Escape HTML except allowed tags
+    const escaped = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '<')
+      .replace(/>/g, '>');
+    // Now selectively un-escape <b>, </b>, <i>, </i>
+    return escaped
+      .replace(/&lt;b&gt;/g, '<strong>')
+      .replace(/&lt;\/b&gt;/g, '</strong>')
+      .replace(/&lt;i&gt;/g, '<em>')
+      .replace(/&lt;\/i&gt;/g, '</em>')
+      .replace(/&lt;br&gt;/g, '<br>');
+  }
+  document.getElementById('q-text').innerHTML = renderQuestionText(q.text);
 
   // Determine if this question has any media
   const hasMedia = (q.img && q.img.trim()) || (q.audio && q.audio.trim()) || (q.video && q.video.trim());
